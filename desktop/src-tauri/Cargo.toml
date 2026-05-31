@@ -1,0 +1,35 @@
+[package]
+name = "whispertype"
+version = "0.1.0"
+description = "WhisperType AI Voice Operating System Native Client"
+authors = ["Braintrix3"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5" }
+
+[dependencies]
+tauri = { version = "1.5", features = ["api-all"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+cpal = "0.15.3"
+enigo = "0.1.3"
+reqwest = { version = "0.11", features = ["json", "multipart"] }
+tokio-tungstenite = { version = "0.20", features = ["connect", "native-tls"] }
+url = "2.4"
+futures-util = "0.3"
+
+# Windows specific OS bindings
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.48", features = [
+    "Win32_Foundation",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Threading"
+] }
+
+# macOS specific OS bindings
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa = "0.25"
+objc = "0.2"

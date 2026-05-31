@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: whispertype_db
+    restart: always
+    environment:
+      POSTGRES_DB: whispertype
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. Redis Cache & Queue Broker Service
+  redis:
+    image: redis:7-alpine
+    container_name: whispertype_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. FastAPI Web Server Service
+  web:
+    build: .
+    container_name: whispertype_web
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/whispertype
+      - REDIS_URL=redis://redis:6379/0
+      - SUPABASE_URL=https://your-project.supabase.co
+      - SUPABASE_ANON_KEY=your-supabase-anon-key
+      - SUPABASE_JWT_SECRET=your-supabase-jwt-secret
+      - STRIPE_API_KEY=sk_test_mock
+      - STRIPE_WEBHOOK_SECRET=whsec_mock
+      - OPENAI_API_KEY=sk-mock
+      - DEEPGRAM_API_KEY=dg-mock
+    depends_on:
+      - db
+      - redis
+
+  # 4. Celery Asynchronous Workers Service
+  worker:
+    build: .
+    container_name: whispertype_worker
+    restart: always
+    command: celery -A app.core.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/whispertype
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=sk-mock
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  pgdata:
