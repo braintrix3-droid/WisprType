@@ -14,7 +14,7 @@ export default function Footer() {
             <span className="text-gradient font-heading">WhisperType</span>
           </Link>
           <p className={styles.description}>
-            Privacy-first, 100% offline open-source voice dictation for Apple Silicon and modern PCs. Powering your workflow with whisper-fast inference.
+            Privacy-first, 100% offline open-source AI Voice Operating System. Turning spoken thoughts directly into finished work natively on-device. Stop typing, start flowing.
           </p>
         </div>
         
