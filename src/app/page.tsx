@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mic, Shield, Zap, Keyboard, Sparkles, Copy, Check, 
   HelpCircle, ChevronDown, Download, Apple, Monitor, Play, 
   Settings, Terminal, FileText, CheckCircle2, XCircle, ArrowRight,
-  TrendingUp, Users, Plus, Trash2, Cpu, RefreshCw
+  TrendingUp, Users, Plus, Trash2, Cpu, RefreshCw, Star, Mail, FileCode
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { GlassCard } from '@/components/GlassCard';
@@ -18,7 +18,6 @@ const SpeechRecognition = typeof window !== 'undefined' &&
   ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 export default function Home() {
-  // Initialize Supabase Client
   const supabase = createClient();
 
   // --- STATE FOR INTERACTIVE TIME SAVED CALCULATOR ---
@@ -27,12 +26,13 @@ export default function Home() {
   const [hourlyRate, setHourlyRate] = useState(65);
 
   // Time saved formulas
-  const speakSpeed = 150; // standard speaking WPM
+  const speakSpeed = 150; 
   const monthlyTypingHours = (dailyWords / typingSpeed) * 30 / 60;
   const monthlySpeakingHours = (dailyWords / speakSpeed) * 30 / 60;
   const hoursSaved = Math.max(0, monthlyTypingHours - monthlySpeakingHours);
   const moneySaved = hoursSaved * hourlyRate;
   const productivityMultiplier = speakSpeed / typingSpeed;
+  const emailsEquivalent = Math.floor(dailyWords / 150) * 30; // approx 150 words per email
 
   // --- STATE FOR SAAS ADVANCED DICTATION ENGINE ---
   const [engineMode, setEngineMode] = useState<'standard' | 'developer' | 'whisper'>('standard');
@@ -94,7 +94,7 @@ export default function Home() {
         .from('todos')
         .select('*')
         .order('id', { ascending: false })
-        .limit(5);
+        .limit(3);
       if (!error && data) {
         setDbSnippets(data);
       }
@@ -118,16 +118,23 @@ export default function Home() {
       if (!error) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
-        fetchSnippets(); // refresh synced logs
+        fetchSnippets(); 
       } else {
-        console.error("Supabase Save Error:", error.message);
         setSpeechError(`Database save error: ${error.message}`);
       }
     } catch (err) {
-      console.error("Supabase Save Exception:", err);
       setSpeechError("Database save failed. Check console details.");
     } finally {
       setDbLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    const textToCopy = transcript || interimText || "Hey, let's ship this dev code to make it work";
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -145,8 +152,6 @@ export default function Home() {
 
     // 2. Remove filler words (um, uh, like, you know)
     text = text.replace(/\b(um|uh|like|you\s+know|ah)\b/gi, '');
-    
-    // Clean double spaces
     text = text.replace(/\s+/g, ' ').trim();
 
     // 3. Jargon personal dictionary correction
@@ -163,7 +168,7 @@ export default function Home() {
 
     // 4. Output tone styles mapping
     if (outputStyle === 'casual') {
-      text = text.toLowerCase().replace(/[.]/g, ""); // lowercase, casual texts
+      text = text.toLowerCase().replace(/[.]/g, ""); 
     } else if (outputStyle === 'developer' || engineMode === 'developer') {
       if (text.toLowerCase().includes("run dev")) {
         text = "npm run dev";
@@ -352,66 +357,60 @@ export default function Home() {
     setInterimText("");
   };
 
-  // Format Elapsed Time
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remaining = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
-  };
-
-  const getWordsCount = (text: string) => {
-    const trimmed = text.trim();
-    return trimmed ? trimmed.split(/\s+/).length : 0;
-  };
-
-  const handleCopy = () => {
-    const fullText = transcript + (interimText ? " " + interimText : "");
-    if (!fullText) return;
-    navigator.clipboard.writeText(fullText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // --- SIMULATED CLIENT TYPING SYSTEM (HERO CONTAINER) ---
-  const [typedContent, setTypedContent] = useState("");
-  const [simActive, setSimActive] = useState(false);
-  const [simMode, setSimMode] = useState<'slack' | 'editor'>('slack');
+  // --- BEFORE/AFTER SPEED SIMULATOR ---
+  const [beforeText, setBeforeText] = useState("");
+  const [afterText, setAfterText] = useState("");
+  const [beforeWpm, setBeforeWpm] = useState(0);
+  const [afterWpm, setAfterWpm] = useState(0);
 
   useEffect(() => {
-    const phrases = {
-      slack: 'Hold Hotkey (fn) ...\n"Hey team, let\'s meet at 2... actually 3 for marketing sync."\n\n[Auto-Formatted & Pasted into Slack]:\n"Hey team, let\'s meet at 3 for marketing sync."',
-      editor: 'Hold Hotkey (Caps Lock) ...\n"create function get user statistics api"... \n\n[Dev-Formatted in VS Code]:\ncreateFunctionGetUserStatisticsAPI()'
-    };
-    
-    let activePhrase = phrases[simMode];
-    let index = 0;
-    let timer: NodeJS.Timeout;
+    let indexBefore = 0;
+    let indexAfter = 0;
+    const phrase = "The quick brown fox jumps over the lazy dog. Local dictation triggers speech pipelines instantly.";
+    let timerBefore: NodeJS.Timeout;
+    let timerAfter: NodeJS.Timeout;
 
-    const typeWriter = () => {
-      if (index < activePhrase.length) {
-        setTypedContent(activePhrase.slice(0, index + 1));
-        index++;
-        
-        let delay = 35;
-        const char = activePhrase[index - 1];
-        if (char === '"' || char === '.') delay = 250;
-        if (char === '\n') delay = 400;
-
-        timer = setTimeout(typeWriter, delay);
+    const typeBefore = () => {
+      if (indexBefore < phrase.length) {
+        setBeforeText(phrase.slice(0, indexBefore + 1));
+        indexBefore++;
+        setBeforeWpm(40 + Math.floor(Math.random() * 5));
+        timerBefore = setTimeout(typeBefore, 180); // slow keypress
       } else {
-        setSimActive(true);
-        timer = setTimeout(() => {
-          setTypedContent("");
-          setSimActive(false);
-          setSimMode(prev => prev === 'slack' ? 'editor' : 'slack');
-        }, 5000);
+        setTimeout(() => {
+          indexBefore = 0;
+          setBeforeText("");
+          typeBefore();
+        }, 3000);
       }
     };
 
-    typeWriter();
-    return () => clearTimeout(timer);
-  }, [simMode]);
+    const typeAfter = () => {
+      if (indexAfter < phrase.length) {
+        // paste word groups instantly
+        const words = phrase.split(" ");
+        const wordsToShow = Math.ceil(indexAfter / 5) + 1;
+        setAfterText(words.slice(0, wordsToShow).join(" "));
+        indexAfter += 6;
+        setAfterWpm(150 + Math.floor(Math.random() * 12));
+        timerAfter = setTimeout(typeAfter, 250); 
+      } else {
+        setTimeout(() => {
+          indexAfter = 0;
+          setAfterText("");
+          typeAfter();
+        }, 3000);
+      }
+    };
 
+    typeBefore();
+    typeAfter();
+
+    return () => {
+      clearTimeout(timerBefore);
+      clearTimeout(timerAfter);
+    };
+  }, []);
 
   // --- FAQ ACCORDION STATES ---
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -440,444 +439,405 @@ export default function Home() {
   };
 
   const fadeUp: any = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+    hidden: { opacity: 0, y: 35 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } }
   };
 
   return (
     <main className={styles.main}>
-      {/* AMBIENT BACKGROUND GLOW ORBS (Reference Image style) */}
-      <div className={styles.bgGlowCyan} />
-      <div className={styles.bgGlowPeach} />
-      <div className={styles.bgGlowSubtle} />
-
-      {/* ========================================================================= */}
-      {/* 1. HERO SECTION (Split-line Voice-to-Text flow matching Reference Image) */}
-      {/* ========================================================================= */}
-      <section className={styles.hero}>
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 1 — HERO (Warm Ivory Background with Pill Buttons & Floating mic) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.heroSection}>
         <div className="container">
           <div className={styles.heroGrid}>
-            <div className={styles.heroContent}>
-              <div className={styles.badge}>
-                <Sparkles size={14} className={styles.badgeIcon} /> Build For Your Shopify Store & Workspace
+            <motion.div 
+              className={styles.heroLeft}
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+            >
+              <div className={styles.heroBadge}>
+                <Sparkles size={13} /> Open-Source Dictation v1.0
               </div>
-              
-              <h1 className={styles.heroTitle}>
-                Turn your Voice <br />
-                <span className="text-gradient">into Written Gold.</span>
+              <h1 className={styles.heroHeadline}>
+                Turn Your Voice <br />
+                <span className="text-gradient">Into Written Gold.</span>
               </h1>
-              
-              <p className={styles.heroSubtitle}>
-                WhisperType Pro is a strict, fully offline, privacy-first alternative to Wispr Flow. Dictate naturally, trigger formatting commands, and watch text paste instantly in any active editor.
+              <p className={styles.heroSubheadline}>
+                A premium, modern, AI-native speech utility that types 4× faster than keyboards. Formats code variables, erases fillers, and corrects backtrackings—100% offline.
               </p>
-              
-              <div className={styles.heroBtns}>
+              <div className={styles.heroCTAButtons}>
                 <Button variant="primary" onClick={() => {
                   document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
                 }}>
-                  <span>Get Started Free</span>
+                  <span>Download Free</span>
                 </Button>
                 <Button variant="secondary" onClick={() => {
                   document.getElementById('playground')?.scrollIntoView({ behavior: 'smooth' });
                 }}>
-                  <span>Try Interactive Demo</span>
+                  <span>Try Interactive Sandbox</span>
                 </Button>
               </div>
+            </motion.div>
 
-              <div className={styles.downloadMeta}>
-                <span className={styles.metaItem}>
-                  <CheckCircle2 size={14} color="var(--neon-blue)" /> Fully Offline AI
-                </span>
-                <span style={{ color: 'rgba(15,23,42,0.1)' }}>|</span>
-                <span className={styles.metaItem}>
-                  <CheckCircle2 size={14} color="var(--neon-blue)" /> Developer Syntax Aware
-                </span>
-              </div>
-            </div>
-
-            {/* Split Visualizer: Voice Waves converting to Notion/IDE texts */}
-            <div className={styles.heroVisualBlock}>
-              <div className={styles.splitVisualizer}>
-                <div className={styles.windowBar}>
-                  <div className={styles.windowDots}>
+            {/* Right: Interactive Dictation Playground inside the Hero Preview */}
+            <motion.div 
+              className={styles.heroRight}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <GlassCard className={styles.dictationWindowCard} glowColor="teal">
+                <div className={styles.cardHeaderPane}>
+                  <div className={styles.cardIndicators}>
                     <div className={`${styles.dot} ${styles.dotRed}`} />
                     <div className={`${styles.dot} ${styles.dotYellow}`} />
                     <div className={`${styles.dot} ${styles.dotGreen}`} />
                   </div>
-                  <div className={styles.windowTitle}>
-                    {simMode === 'slack' ? 'Slack - #product-launch' : 'Cursor IDE - server.ts'}
-                  </div>
-                  <div style={{ width: '40px' }} />
-                </div>
-                <div className={styles.windowContent}>
-                  <div className={styles.simWrapper}>
-                    <div className={styles.simText}>{typedContent}</div>
-                    <span className={styles.simCursor} />
-                  </div>
-                  <div className={`${styles.simLabel} ${styles.simLabelActive}`}>
-                    {simMode === 'slack' ? '🎙️ Filtering Fillers & Backtracks' : '⚙️ Auto-camelCase Injection'}
+                  <span className={styles.cardTitleText}>WhisperType Pro Dictation Box</span>
+                  <div className={styles.cardGlowBadge}>
+                    {isRecording ? "🔴 LISTENING" : "⚫ STANDBY"}
                   </div>
                 </div>
+
+                <div className={styles.cardInnerContent}>
+                  {/* Waveform Visualizer */}
+                  <div className={styles.heroWaveformWrapper}>
+                    {waveHeights.map((h, i) => (
+                      <div 
+                        key={i} 
+                        className={`${styles.heroWaveBar} ${isRecording ? styles.heroWaveActive : ""}`}
+                        style={{ 
+                          height: `${h}px`,
+                          transition: isRecording ? 'height 0.08s ease' : 'height 0.3s ease'
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Mic Toggle Button */}
+                  <div className={styles.heroMicBtnWrapper}>
+                    <button 
+                      onClick={isRecording ? stopRecording : startRecording}
+                      className={`${styles.heroMicButton} ${isRecording ? styles.heroMicActive : ""}`}
+                    >
+                      <Mic size={26} />
+                    </button>
+                    {isRecording && <div className="record-pulse-active" style={{ position: 'absolute', width: '60px', height: '60px', borderRadius: '50%', pointerEvents: 'none' }} />}
+                  </div>
+
+                  {/* Casing Options */}
+                  <div className={styles.heroOutputControls}>
+                    <button onClick={() => setOutputStyle('formal')} className={`${styles.controlBtn} ${outputStyle === 'formal' ? styles.controlBtnActive : ""}`}>Formal</button>
+                    <button onClick={() => setOutputStyle('casual')} className={`${styles.controlBtn} ${outputStyle === 'casual' ? styles.controlBtnActive : ""}`}>Casual</button>
+                    <button onClick={() => setOutputStyle('developer')} className={`${styles.controlBtn} ${outputStyle === 'developer' ? styles.controlBtnActive : ""}`}>camelCase</button>
+                  </div>
+
+                  {/* Real-time Text Box */}
+                  <div className={styles.heroTextBox}>
+                    {transcript || interimText ? (
+                      <>
+                        <span>{transcript}</span>
+                        {interimText && <span style={{ opacity: 0.5 }}>{" " + interimText}</span>}
+                      </>
+                    ) : (
+                      <span className={styles.heroPlaceholder}>
+                        Click the teal mic, speak natural sentences (or say "meet at 2... actually 3") and watch corrections apply...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Supabase Actions Row */}
+                  {(transcript || interimText) && (
+                    <div className={styles.heroActionRow}>
+                      <button onClick={saveToSupabase} disabled={dbLoading} className={styles.dbActionButton}>
+                        {dbLoading ? <RefreshCw size={12} className="animate-spin" /> : saveSuccess ? <><Check size={12} /> Saved</> : <><Shield size={12} /> Save to Supabase</>}
+                      </button>
+                      <button onClick={handleCopy} className={styles.dbActionButton}>
+                        {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 2 — PRODUCT IN ACTION (Dark Obsidian Orbiting Grid) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.productInActionSection}>
+        <div className="container">
+          <div className={styles.actionHeader}>
+            <h2 className={styles.darkHeadline}>Writes Faster In Every App You Already Use</h2>
+            <p className={styles.darkSubheadline}>WhisperType Pro works everywhere your cursor lands. Seamlessly types code, documents, and communication logs.</p>
+          </div>
+
+          <div className={styles.orbitContainer}>
+            {/* Ambient Background glows */}
+            <div className={styles.orbitGlow1} />
+            <div className={styles.orbitGlow2} />
+
+            {/* Central WhisperType Node */}
+            <GlassCard className={styles.centralAppNode} isDark glowColor="teal">
+              <Mic size={36} className={styles.centralIcon} />
+              <span className={styles.centralLabel}>WhisperType Pro</span>
+            </GlassCard>
+
+            {/* Orbiting App Tracks */}
+            <div className={styles.orbitTrack1} />
+            <div className={styles.orbitTrack2} />
+
+            {/* Orbiting Icons */}
+            <motion.div className={`${styles.orbitIcon} ${styles.orbitIcon1}`} animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 18, ease: "linear" }}>
+              <Terminal size={18} />
+            </motion.div>
+            <motion.div className={`${styles.orbitIcon} ${styles.orbitIcon2}`} animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 22, ease: "linear" }}>
+              <Mail size={18} />
+            </motion.div>
+            <motion.div className={`${styles.orbitIcon} ${styles.orbitIcon3}`} animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 25, ease: "linear" }}>
+              <FileText size={18} />
+            </motion.div>
+            <motion.div className={`${styles.orbitIcon} ${styles.orbitIcon4}`} animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }}>
+              <Shield size={18} />
+            </motion.div>
+            <motion.div className={`${styles.orbitIcon} ${styles.orbitIcon5}`} animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 30, ease: "linear" }}>
+              <FileCode size={18} />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 3 — SPEED COMPARISON (Before / After Split Panel) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.speedComparisonSection}>
+        <div className="container">
+          <div className={styles.comparisonHeader}>
+            <h2 className={styles.speedHeadline}>4× Faster Than Typing</h2>
+            <p className={styles.speedSubheadline}>Your voice speaks at 150+ Words Per Minute. Stop limiting your thoughts to WPM keyboard limits.</p>
+          </div>
+
+          <div className={styles.speedSplitGrid}>
+            {/* Before (Typing Manually) */}
+            <GlassCard className={styles.speedCard} glowColor="none">
+              <div className={styles.speedCardHeader}>
+                <span className={styles.speedBadge} style={{ background: 'rgba(17,17,17,0.05)', color: 'var(--text-primary)' }}>Before</span>
+                <span className={styles.speedCounter}>{beforeWpm} WPM</span>
               </div>
+              <div className={styles.speedBody}>
+                <p className={styles.speedText}>{beforeText}<span className={styles.speedCursor} /></p>
+              </div>
+              <div className={styles.speedCardFooter}>Manual Keyboard Typing</div>
+            </GlassCard>
+
+            {/* After (WhisperType Pro) */}
+            <GlassCard className={styles.speedCard} glowColor="teal">
+              <div className={styles.speedCardHeader}>
+                <span className={styles.speedBadge}>After</span>
+                <span className={styles.speedCounter} style={{ color: 'var(--accent-teal)' }}>{afterWpm} WPM</span>
+              </div>
+              <div className={styles.speedBody}>
+                <p className={styles.speedText} style={{ color: 'var(--accent-teal)', fontWeight: 500 }}>{afterText}<span className={styles.speedCursor} style={{ background: 'var(--accent-teal)' }} /></p>
+              </div>
+              <div className={styles.speedCardFooter} style={{ color: 'var(--accent-teal)', fontWeight: 600 }}>WhisperType Local AI</div>
+            </GlassCard>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 4 — ALTERNATING WORKFLOW SECTIONS (Large visual storybooks) */}
+      {/* ------------------------------------------------------------------------- */}
+      {/* Block 1: Auto Formatting (Light) */}
+      <section className={styles.workflowLightSection}>
+        <div className="container">
+          <div className={styles.workflowRow}>
+            <div className={styles.workflowInfo}>
+              <span className={styles.workflowTag}>Smart Dictation</span>
+              <h3>Auto-Formatting & Filler Eraser</h3>
+              <p>Strips out filler words like 'um', 'uh', and 'you know' instantly. Corrects speech stutters to format beautiful paragraphs natively.</p>
+              <div className={styles.workflowMockText}>
+                "let's <span style={{ textDecoration: 'line-through', color: 'rgba(244,63,94,0.6)' }}>um</span> code the <span style={{ textDecoration: 'line-through', color: 'rgba(244,63,94,0.6)' }}>like</span> new API endpoint" <br />
+                <ArrowRight size={14} style={{ margin: '0.4rem 0', color: 'var(--text-muted)' }} /> <br />
+                <strong style={{ color: 'var(--accent-teal)' }}>"Let's code the new API endpoint"</strong>
+              </div>
+            </div>
+            <div className={styles.workflowVisual}>
+              <GlassCard className={styles.workflowGlassCard} glowColor="teal">
+                <Terminal size={32} style={{ color: 'var(--accent-teal)', marginBottom: '1rem' }} />
+                <h5>Auto-Punctuate & Auto-Paragraph</h5>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Pause to paragraph. Speak naturally, and let our compiler inject formatting elements seamlessly.</p>
+              </GlassCard>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 2. LIVE SAAS TRANSCRIPTION PLAYGROUND (Wispr Flow Feature Injections) */}
-      {/* ========================================================================= */}
-      <section id="playground" className={styles.section} style={{ background: '#ffffff' }}>
+      {/* Block 2: Context Awareness (Dark) */}
+      <section className={styles.workflowDarkSection}>
         <div className="container">
-          <div className={styles.sectionHeader}>
-            <h2>Universal Dictation Playground</h2>
-            <p>Test the developer syntax casing, backtrack voice correction, and corporate tone rewrites in real-time.</p>
+          <div className={styles.workflowRow} style={{ flexDirection: 'row-reverse' }}>
+            <div className={styles.workflowInfo}>
+              <span className={styles.workflowTag} style={{ color: 'var(--accent-lavender)', background: 'rgba(220, 198, 246, 0.1)' }}>Developers</span>
+              <h3 style={{ color: 'var(--text-white)' }}>Developer Context Awareness</h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)' }}>Formulate variables inside your IDE. WhisperType Pro understands camelCase, snake_case, CLI triggers, and brackets without breaking code syntax.</p>
+              <div className={styles.workflowMockCode}>
+                <span style={{ color: '#8b5cf6' }}>const</span> <span style={{ color: '#06b6d4' }}>fetchProductInventoryAPI</span> = () =&gt; &#123;&#125;
+              </div>
+            </div>
+            <div className={styles.workflowVisual}>
+              <GlassCard className={styles.workflowGlassCard} isDark glowColor="lavender">
+                <FileCode size={32} style={{ color: 'var(--accent-lavender)', marginBottom: '1rem' }} />
+                <h5 style={{ color: 'var(--text-white)' }}>Windsurf & Cursor File Tags</h5>
+                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Speak tag triggers alongside codes to auto-import target file contexts straight to your prompt window.</p>
+              </GlassCard>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className={styles.playgroundContainer}>
-            <GlassCard className={styles.playgroundCard} glowColor="blue">
-              {/* Top Engine Configuration Filters */}
-              <div className={styles.playgroundHeaderGrid}>
-                <div className={styles.configColumn}>
-                  <label className={styles.configLabel}><Cpu size={14} /> Dictation Engine Mode</label>
-                  <div className={styles.toggleRow}>
-                    <button 
-                      onClick={() => setEngineMode('standard')} 
-                      className={`${styles.toggleBtn} ${engineMode === 'standard' ? styles.toggleBtnActive : ""}`}
-                    >
-                      Standard
-                    </button>
-                    <button 
-                      onClick={() => setEngineMode('developer')} 
-                      className={`${styles.toggleBtn} ${engineMode === 'developer' ? styles.toggleBtnActive : ""}`}
-                    >
-                      Developer (camelCase)
-                    </button>
-                    <button 
-                      onClick={() => setEngineMode('whisper')} 
-                      className={`${styles.toggleBtn} ${engineMode === 'whisper' ? styles.toggleBtnActive : ""}`}
-                    >
-                      Whisper Mode
-                    </button>
-                  </div>
-                </div>
-
-                <div className={styles.configColumn}>
-                  <label className={styles.configLabel}><Sparkles size={14} /> Tone Casing Style</label>
-                  <div className={styles.toggleRow}>
-                    <button 
-                      onClick={() => setOutputStyle('formal')} 
-                      className={`${styles.toggleBtn} ${outputStyle === 'formal' ? styles.toggleBtnActive : ""}`}
-                    >
-                      Formal
-                    </button>
-                    <button 
-                      onClick={() => setOutputStyle('casual')} 
-                      className={`${styles.toggleBtn} ${outputStyle === 'casual' ? styles.toggleBtnActive : ""}`}
-                    >
-                      Slack Casual
-                    </button>
-                    <button 
-                      onClick={() => setOutputStyle('developer')} 
-                      className={`${styles.toggleBtn} ${outputStyle === 'developer' ? styles.toggleBtnActive : ""}`}
-                    >
-                      IDE
-                    </button>
-                  </div>
-                </div>
+      {/* Block 3: AI Enhancement (Light) */}
+      <section className={styles.workflowLightSection}>
+        <div className="container">
+          <div className={styles.workflowRow}>
+            <div className={styles.workflowInfo}>
+              <span className={styles.workflowTag}>Voice Editing</span>
+              <h3>Vocal Command Mode</h3>
+              <p>Highlight any typed sentence and dictate formatting prompts like "Make Professional", "Summarize as bullets", or "Casual tone". Watch text morph instantly.</p>
+              <div className={styles.presetCmdRow}>
+                <span className={styles.cmdBadge}>"Make Professional"</span>
+                <span className={styles.cmdBadge}>"Bulleted List"</span>
               </div>
+            </div>
+            <div className={styles.workflowVisual}>
+              <GlassCard className={styles.workflowGlassCard} glowColor="teal">
+                <Sparkles size={32} style={{ color: 'var(--accent-teal)', marginBottom: '1rem' }} />
+                <h5>Personal Dictionary Learning</h5>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Prevent repeated spelling errors. Add custom industry jargon, names, or slang to correct casing dynamically.</p>
+              </GlassCard>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              {/* Dictation Box & Waveforms */}
-              <div className={styles.dictationWrapper}>
-                <div className={styles.playVisualizerWrapper}>
-                  {waveHeights.map((h, i) => (
-                    <div 
-                      key={i} 
-                      className={`${styles.playVisualizerBar} ${isRecording ? styles.playVisualizerActiveBar : ""}`}
-                      style={{ 
-                        height: `${h}px`,
-                        transition: isRecording ? 'height 0.08s ease' : 'height 0.3s ease'
-                      }}
-                    />
-                  ))}
-                </div>
-
-                <div className={styles.recordingSection}>
-                  <button 
-                    onClick={isRecording ? stopRecording : startRecording}
-                    className={`${styles.recordButton} ${isRecording ? styles.recordButtonActive : ""}`}
-                  >
-                    <Mic size={32} />
-                  </button>
-                  {isRecording && <div className="record-pulse-active" style={{ position: 'absolute', width: '80px', height: '80px', borderRadius: '50%' }} />}
-                </div>
-
-                <div className={styles.speechDisplayBox}>
-                  <div className={styles.transTextArea}>
-                    {transcript || interimText ? (
-                      <>
-                        <span>{transcript}</span>
-                        {interimText && <span style={{ color: 'var(--text-muted)', opacity: 0.7 }}>{" " + interimText}</span>}
-                      </>
-                    ) : (
-                      <span className={styles.placeholderText}>
-                        {engineMode === 'developer' 
-                          ? 'Speak standard coding ideas (e.g. "create function user id... actually user authentication") and watch camelCase and backtrack corrections parse...'
-                          : 'Click microphone to record. Try speaking: "Send invoice tomorrow... actually today at 5 um, you know, for the api saas project"...'
-                        }
-                      </span>
-                    )}
-                  </div>
-
-                  {(transcript || interimText) && (
-                    <div className={styles.copyRow} style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button 
-                        onClick={saveToSupabase}
-                        disabled={dbLoading}
-                        className={`${styles.actionButton} ${saveSuccess ? styles.actionButtonCopied : ""}`}
-                      >
-                        {dbLoading ? (
-                          <RefreshCw size={14} className="animate-spin" />
-                        ) : saveSuccess ? (
-                          <><Check size={14} /> Saved!</>
-                        ) : (
-                          <><Shield size={14} /> Save to Supabase</>
-                        )}
-                      </button>
-                      
-                      <button 
-                        onClick={handleCopy}
-                        className={`${styles.actionButton} ${copied ? styles.actionButtonCopied : ""}`}
-                      >
-                        {copied ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy Text</>}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Vocal Command Mode Actions */}
-              <div className={styles.commandModeContainer}>
-                <h4 className={styles.commandTitle}><Terminal size={14} /> Speech-to-Command Mode (Voice Casing Simulator)</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  Simulate voice editing rewrites. Click a preset command to mutate your transcript instantly:
-                </p>
-                <div className={styles.commandRow}>
-                  <button onClick={() => applyAICommand('make-pro')} className={styles.cmdBtn}>
-                    <FileText size={13} /> "Make this sound professional"
-                  </button>
-                  <button onClick={() => applyAICommand('make-casual')} className={styles.cmdBtn}>
-                    <Users size={13} /> "Make this casual lowercase"
-                  </button>
-                  <button onClick={() => applyAICommand('bulleted')} className={styles.cmdBtn}>
-                    <Plus size={13} /> "Turn this into a bulleted list"
-                  </button>
-                </div>
-              </div>
-
-              {/* Personal Dictionary Widget */}
-              <div className={styles.dictionaryContainer}>
-                <h4 className={styles.commandTitle}><Settings size={14} /> Personal Jargon Dictionary (Prevents Repeated Spelling Errors)</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                  Add acronyms, custom names, or jargon. Spoken words will correct to these exact casings:
-                </p>
-                
-                <div className={styles.jargonInputRow}>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Windsurf, Cursor, API" 
-                    value={jargonInput}
-                    onChange={(e) => setJargonInput(e.target.value)}
-                    className={styles.jargonInput}
-                    onKeyDown={(e) => e.key === 'Enter' && addJargon()}
-                  />
-                  <Button variant="primary" onClick={addJargon} style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}>
-                    Add Word
-                  </Button>
-                </div>
-
-                <div className={styles.dictionaryList}>
-                  {Object.entries(personalDictionary).map(([key, val]) => (
-                    <span key={key} className={styles.jargonBadge}>
-                      {val}
-                      <button onClick={() => removeJargon(key)} className={styles.removeJargonBtn}><Trash2 size={10} /></button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Live Supabase Sync Logs */}
-              <div className={styles.dbSnippetsContainer}>
-                <h4 className={styles.commandTitle}><Shield size={14} /> Live Supabase Database Log (`todos` Table)</h4>
-                {dbLoading && dbSnippets.length === 0 ? (
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Syncing database logs...</div>
-                ) : dbSnippets.length === 0 ? (
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                    No dictations saved yet. Transcribe something above and click "Save to Supabase" to push it to the live cloud!
-                  </div>
-                ) : (
-                  <div className={styles.dbList}>
+      {/* Block 4: Offline Privacy (Dark) */}
+      <section className={styles.workflowDarkSection}>
+        <div className="container">
+          <div className={styles.workflowRow} style={{ flexDirection: 'row-reverse' }}>
+            <div className={styles.workflowInfo}>
+              <span className={styles.workflowTag} style={{ color: 'var(--accent-lavender)', background: 'rgba(220, 198, 246, 0.1)' }}>Security</span>
+              <h3 style={{ color: 'var(--text-white)' }}>100% Offline Privacy</h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)' }}>Run AI transcription models entirely inside local system RAM. Your confidential documents, proprietary scripts, and emails remain entirely on device.</p>
+              
+              {/* Dynamic Supabase Log inside Dark Section */}
+              <div className={styles.supabaseLogSection}>
+                <span className={styles.dbSyncBadge}><Shield size={12} /> Local Supabase Sandbox Sync</span>
+                {dbSnippets.length > 0 ? (
+                  <div className={styles.supabaseMockList}>
                     {dbSnippets.map((item) => (
-                      <div key={item.id} className={styles.dbSnippetItem}>
-                        <span className={styles.dbId}>ID #{item.id}</span>
-                        <p className={styles.dbText}>{item.name}</p>
+                      <div key={item.id} className={styles.supabaseMockItem}>
+                        <span className={styles.supabaseMockId}>ID #{item.id}</span>
+                        <p className={styles.supabaseMockText}>{item.name}</p>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
+                    Database logs are empty. Save your sandbox dictations in the hero block above.
+                  </div>
                 )}
               </div>
+            </div>
+            <div className={styles.workflowVisual}>
+              <GlassCard className={styles.workflowGlassCard} isDark glowColor="lavender">
+                <Shield size={32} style={{ color: 'var(--accent-lavender)', marginBottom: '1rem' }} />
+                <h5 style={{ color: 'var(--text-white)' }}>Zero Server Telemetry</h5>
+                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>WhisperType Pro respects your privacy bounds. Absolutely zero audio packet files or transcription texts are stored on public servers.</p>
+              </GlassCard>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              {/* Stats & Error Logs */}
-              {speechError && <div style={{ color: 'var(--neon-rose)', fontSize: '0.9rem', marginTop: '1rem', textAlign: 'center' }}>{speechError}</div>}
-              
-              <div className={styles.statsPanel}>
-                <div className={styles.statMetric}>
-                  <div className={styles.statVal}>{formatTime(recordingTime)}</div>
-                  <div className={styles.statLabel}>Duration</div>
-                </div>
-                <div className={styles.statMetric}>
-                  <div className={styles.statVal}>{getWordsCount(transcript + interimText)}</div>
-                  <div className={styles.statLabel}>Word Count</div>
-                </div>
-                <div className={styles.statMetric}>
-                  <div className={styles.statVal} style={{ color: 'var(--neon-blue)' }}>Local AI</div>
-                  <div className={styles.statLabel}>Inference Location</div>
-                </div>
-              </div>
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 5 — BENTO FEATURES GRID (Dark 2-Column Bento Deck) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.bentoSection}>
+        <div className="container">
+          <div className={styles.bentoHeader}>
+            <h2 className={styles.darkHeadline}>Built For Absolute Dictation Control</h2>
+            <p className={styles.darkSubheadline}>An organic Bento Grid compiling all advanced voice editing, casing, and privacy features.</p>
+          </div>
+
+          <div className={styles.bentoGrid}>
+            {/* Bento Card 1: Auto Formatting */}
+            <GlassCard className={styles.bentoCard} isDark glowColor="teal">
+              <Sparkles size={24} style={{ color: 'var(--accent-teal)', marginBottom: '1.25rem' }} />
+              <h4 style={{ color: 'var(--text-white)' }}>Auto Formatting</h4>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Automatically removes fill words ("um", "like") and constructs bullet items natively from spoken pauses.</p>
+            </GlassCard>
+
+            {/* Bento Card 2: Context Casing */}
+            <GlassCard className={styles.bentoCard} isDark glowColor="lavender">
+              <Terminal size={24} style={{ color: 'var(--accent-lavender)', marginBottom: '1.25rem' }} />
+              <h4 style={{ color: 'var(--text-white)' }}>Context Awareness</h4>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Intuitively maps casual uppercase templates, corporate emails, and complex developer casings seamlessly.</p>
+            </GlassCard>
+
+            {/* Bento Card 3: Voice Commands */}
+            <GlassCard className={styles.bentoCard} isDark glowColor="lavender">
+              <Keyboard size={24} style={{ color: 'var(--accent-lavender)', marginBottom: '1.25rem' }} />
+              <h4 style={{ color: 'var(--text-white)' }}>Voice Commands</h4>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Allows you to highlight any block and use vocal editing shortcuts to rewrite formatting styles instantly.</p>
+            </GlassCard>
+
+            {/* Bento Card 4: AI Rewrite */}
+            <GlassCard className={styles.bentoCard} isDark glowColor="teal">
+              <FileText size={24} style={{ color: 'var(--accent-teal)', marginBottom: '1.25rem' }} />
+              <h4 style={{ color: 'var(--text-white)' }}>AI Rewrite Preset</h4>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Converts standard sentences into casual lowercase, professional pitches, or outline drafts dynamically.</p>
+            </GlassCard>
+
+            {/* Bento Card 5: Privacy First */}
+            <GlassCard className={styles.bentoCard} isDark glowColor="teal">
+              <Shield size={24} style={{ color: 'var(--accent-teal)', marginBottom: '1.25rem' }} />
+              <h4 style={{ color: 'var(--text-white)' }}>Privacy First</h4>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Operates offline local AI model files completely. Zero third-party telemetry footprints exist.</p>
+            </GlassCard>
+
+            {/* Bento Card 6: Multi-Language */}
+            <GlassCard className={styles.bentoCard} isDark glowColor="lavender">
+              <Cpu size={24} style={{ color: 'var(--accent-lavender)', marginBottom: '1.25rem' }} />
+              <h4 style={{ color: 'var(--text-white)' }}>100+ Languages</h4>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>Supports global speech translation networks including English, Spanish, Hindi, Korean, and Arabic.</p>
             </GlassCard>
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 3. 3-COLUMN FEATURE MATRIX SECTION (Replicating layout in Reference Image) */}
-      {/* ========================================================================= */}
-      <section id="features" className={styles.section} style={{ background: '#f8fafc' }}>
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 6 — REDESIGNED CALCULATOR (Sliders & Savings Dashboard) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.calculatorSection}>
         <div className="container">
-          <div className={styles.sectionHeader}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--neon-blue)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</span>
-            <h2>Transform your Writing into a Subscription Powerhouse</h2>
-            <p>Everything you need to write and dictate code, communications, and files—all in one place.</p>
+          <div className={styles.calculatorHeader}>
+            <h2>Redesigned Savings Dashboard</h2>
+            <p>Slide metrics to see how WhisperType Pro alters your daily writing timelines.</p>
           </div>
 
-          <div className={styles.featureGridMatrix}>
-            {/* Card 1: Auto-Formatting */}
-            <GlassCard className={styles.featureMatrixCard} glowColor="blue">
-              <div className={styles.cardHeader}>
-                <span className={styles.matrixBadge}>🎙️ Dictation</span>
-                <h3>Auto-Formatting & Filler Eraser</h3>
-                <p>Removes filler words like 'um', 'uh', and 'you know' automatically while building clean paragraphs.</p>
-              </div>
-              <div className={styles.matrixMockup}>
-                <div className={styles.mockText}>
-                  "we need to <span style={{ textDecoration: 'line-through', color: 'rgba(244,63,94,0.6)' }}>um</span> complete the <span style={{ textDecoration: 'line-through', color: 'rgba(244,63,94,0.6)' }}>like</span> client launch." <br />
-                  <ArrowRight size={14} className={styles.mockArrow} /> <span style={{ color: 'var(--neon-blue)', fontWeight: 600 }}>"We need to complete the client launch."</span>
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Card 2: Developer Syntax */}
-            <GlassCard className={styles.featureMatrixCard} glowColor="purple">
-              <div className={styles.cardHeader}>
-                <span className={styles.matrixBadge} style={{ background: 'rgba(79,70,229,0.06)', color: 'var(--neon-purple)' }}>⚙️ Developers</span>
-                <h3>Syntax & Context Jargon</h3>
-                <p>Parses complex dev terms, CLI instructions, and auto-camelCases variables directly in VS Code or Cursor.</p>
-              </div>
-              <div className={styles.matrixMockup}>
-                <div className={styles.mockCodeWindow}>
-                  <span style={{ color: '#6366f1' }}>const</span> <span style={{ color: '#0284c7' }}>fetchProductReviewsAPI</span> = () =&gt; &#123;&#125;
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Card 3: Backtracking */}
-            <GlassCard className={styles.featureMatrixCard} glowColor="pink">
-              <div className={styles.cardHeader}>
-                <span className={styles.matrixBadge} style={{ background: 'rgba(244,63,94,0.06)', color: 'var(--neon-rose)' }}>🔄 Backtracking</span>
-                <h3>Mid-Sentence Corrections</h3>
-                <p>Intuitively tracks verbal edits. Change your mind, and WhisperType Pro corrects the written thought instantly.</p>
-              </div>
-              <div className={styles.matrixMockup}>
-                <div className={styles.mockText}>
-                  "meet at 2... <span style={{ color: 'var(--neon-rose)', fontWeight: 600 }}>actually 3</span>" <br />
-                  <ArrowRight size={14} className={styles.mockArrow} /> <span style={{ color: 'var(--neon-rose)', fontWeight: 600 }}>"meet at 3"</span>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 4. BENEFITS 6-CARD GRID (Built to Help You Grow style in Reference Image) */}
-      {/* ========================================================================= */}
-      <section className={styles.section} style={{ background: '#ffffff' }}>
-        <div className="container">
-          <div className={styles.sectionHeader}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--neon-purple)', fontWeight: 700, textTransform: 'uppercase' }}>Benefits</span>
-            <h2>Built to Help You Grow & Ship</h2>
-            <p>Ditch typing bottlenecks. Experience local voice tools that perform tasks smoothly in real-time.</p>
-          </div>
-
-          <div className={styles.benefitsGrid}>
-            <GlassCard className={styles.benefitCard} glowColor="blue">
-              <Shield size={24} className={styles.benefitIcon} />
-              <h4>Predictable, Private AI</h4>
-              <p>All transcription computations occur locally inside your RAM. Voice files never upload to public clouds.</p>
-            </GlassCard>
-
-            <GlassCard className={styles.benefitCard} glowColor="purple">
-              <TrendingUp size={24} className={styles.benefitIcon} style={{ color: 'var(--neon-purple)' }} />
-              <h4>Real-Time Inference</h4>
-              <p>Optimized for Apple M-series neural engines and Windows GPU platforms for &lt;50ms paste latencies.</p>
-            </GlassCard>
-
-            <GlassCard className={styles.benefitCard} glowColor="pink">
-              <Plus size={24} className={styles.benefitIcon} style={{ color: 'var(--neon-rose)' }} />
-              <h4>Voice Snippet Pastes</h4>
-              <p>Assign custom voice commands (e.g. 'Insert Links') to paste long pre-formatted texts or URLs instantly.</p>
-            </GlassCard>
-
-            <GlassCard className={styles.benefitCard} glowColor="none">
-              <Settings size={24} className={styles.benefitIcon} style={{ color: 'var(--text-primary)' }} />
-              <h4>Personal Jargon Lists</h4>
-              <p>Teach the offline dictionary slang, complex acronyms, or specific product names once, and never correct them again.</p>
-            </GlassCard>
-
-            <GlassCard className={styles.benefitCard} glowColor="blue">
-              <Terminal size={24} className={styles.benefitIcon} />
-              <h4>Windsurf & Cursor Tags</h4>
-              <p>Dictate tags like 'import file context' alongside codes to instruct coding agents to fetch accurate code files.</p>
-            </GlassCard>
-
-            <GlassCard className={styles.benefitCard} glowColor="purple">
-              <Sparkles size={24} className={styles.benefitIcon} style={{ color: 'var(--neon-purple)' }} />
-              <h4>Adaptive Style Filters</h4>
-              <p>Switches writing style automatically (e.g. formal inside emails, lowercase casual on text messages).</p>
-            </GlassCard>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 5. INTERACTIVE PRODUCTIVITY CALCULATOR (ROI Box in Reference Image) */}
-      {/* ========================================================================= */}
-      <section className={styles.section} style={{ background: '#f8fafc' }}>
-        <div className="container">
-          <div className={styles.sectionHeader}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--neon-orange)', fontWeight: 700, textTransform: 'uppercase' }}>Calculator</span>
-            <h2>Calculate How WhisperType Pro <br />Transforms Your Workflow</h2>
-          </div>
-
-          <div className={styles.calculatorCardWrapper}>
-            <GlassCard className={styles.calculatorCard} glowColor="purple">
-              <div className={styles.calcGrid}>
-                {/* Sliders Area */}
-                <div className={styles.calcInputs}>
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderHeader}>
-                      <span>Daily Spoken / Written Words</span>
-                      <strong className={styles.sliderVal}>{dailyWords} words</strong>
+          <div className={styles.calculatorCardContainer}>
+            <GlassCard className={styles.premiumCalculatorCard} glowColor="teal">
+              <div className={styles.calculatorSplitGrid}>
+                {/* Sliders */}
+                <div className={styles.slidersBlock}>
+                  <div className={styles.sliderWidget}>
+                    <div className={styles.sliderLabels}>
+                      <span>Daily Dictation Length</span>
+                      <strong className={styles.sliderHighlight}>{dailyWords} words</strong>
                     </div>
                     <input 
                       type="range" 
@@ -886,15 +846,15 @@ export default function Home() {
                       step="500"
                       value={dailyWords} 
                       onChange={(e) => setDailyWords(Number(e.target.value))}
-                      className={styles.sliderBar}
+                      className={styles.rangeBar}
                     />
-                    <div className={styles.sliderLimits}><span>500 words</span><span>10,000 words</span></div>
+                    <div className={styles.rangeLimits}><span>500 words</span><span>10,000 words</span></div>
                   </div>
 
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderHeader}>
-                      <span>Your Keyboard Typing Speed</span>
-                      <strong className={styles.sliderVal}>{typingSpeed} WPM</strong>
+                  <div className={styles.sliderWidget}>
+                    <div className={styles.sliderLabels}>
+                      <span>Keyboard Typing Speed</span>
+                      <strong className={styles.sliderHighlight}>{typingSpeed} WPM</strong>
                     </div>
                     <input 
                       type="range" 
@@ -903,15 +863,15 @@ export default function Home() {
                       step="5"
                       value={typingSpeed} 
                       onChange={(e) => setTypingSpeed(Number(e.target.value))}
-                      className={styles.sliderBar}
+                      className={styles.rangeBar}
                     />
-                    <div className={styles.sliderLimits}><span>20 WPM (Slow)</span><span>120 WPM (Pro Typist)</span></div>
+                    <div className={styles.rangeLimits}><span>20 WPM (Slow)</span><span>120 WPM (Pro)</span></div>
                   </div>
 
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderHeader}>
-                      <span>Hourly Value of Your Time</span>
-                      <strong className={styles.sliderVal}>${hourlyRate} / hr</strong>
+                  <div className={styles.sliderWidget}>
+                    <div className={styles.sliderLabels}>
+                      <span>Hourly Value Rate</span>
+                      <strong className={styles.sliderHighlight}>${hourlyRate}/hr</strong>
                     </div>
                     <input 
                       type="range" 
@@ -920,44 +880,38 @@ export default function Home() {
                       step="5"
                       value={hourlyRate} 
                       onChange={(e) => setHourlyRate(Number(e.target.value))}
-                      className={styles.sliderBar}
+                      className={styles.rangeBar}
                     />
-                    <div className={styles.sliderLimits}><span>$15/hr</span><span>$200/hr</span></div>
+                    <div className={styles.rangeLimits}><span>$15/hr</span><span>$200/hr</span></div>
                   </div>
                 </div>
 
-                {/* Outputs Display Box (matches ROI layout from Reference Image) */}
-                <div className={styles.calcOutputs}>
-                  <div className={styles.outputGrid}>
-                    <div className={styles.outputItem}>
-                      <div className={styles.outputTitle}>Time Spent Typing</div>
-                      <div className={styles.outputVal}>{monthlyTypingHours.toFixed(1)} hrs</div>
-                      <span className={styles.outputSub}>per month</span>
+                {/* Animated metrics Dashboard */}
+                <div className={styles.dashboardBlock}>
+                  <div className={styles.dashboardMetricsGrid}>
+                    <div className={styles.dashCard}>
+                      <span className={styles.dashCardTitle}>Monthly Hours Saved</span>
+                      <h4 className={styles.dashCardVal}>{hoursSaved.toFixed(1)} hrs</h4>
+                      <p className={styles.dashCardSub}>recovered back to you</p>
                     </div>
 
-                    <div className={styles.outputItem}>
-                      <div className={styles.outputTitle}>Time Spent Speaking</div>
-                      <div className={styles.outputVal} style={{ color: 'var(--neon-blue)' }}>{monthlySpeakingHours.toFixed(1)} hrs</div>
-                      <span className={styles.outputSub}>per month</span>
+                    <div className={styles.dashCard}>
+                      <span className={styles.dashCardTitle}>Productivity Boost</span>
+                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-teal)' }}>{productivityMultiplier.toFixed(1)}x</h4>
+                      <p className={styles.dashCardSub}>faster dictation speed</p>
                     </div>
 
-                    <div className={styles.outputMainItem}>
-                      <div className={styles.outputTitle} style={{ color: 'var(--neon-purple)' }}>Total Time Saved</div>
-                      <div className={styles.outputMainVal}>{hoursSaved.toFixed(1)} hrs</div>
-                      <span className={styles.outputSub}>saved every single month</span>
-                    </div>
-
-                    <div className={styles.outputMainItem}>
-                      <div className={styles.outputTitle} style={{ color: 'var(--neon-orange)' }}>Productivity Gain</div>
-                      <div className={styles.outputMainVal} style={{ color: 'var(--neon-orange)' }}>{productivityMultiplier.toFixed(1)}x</div>
-                      <span className={styles.outputSub}>faster than keyboard typing</span>
+                    <div className={styles.dashCard} style={{ gridColumn: 'span 2' }}>
+                      <span className={styles.dashCardTitle}>Equivalent Emails Spoken</span>
+                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-teal)' }}>~{emailsEquivalent} emails</h4>
+                      <p className={styles.dashCardSub}>drafted at speed of thought</p>
                     </div>
                   </div>
 
-                  <div className={styles.financialOutputBox}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Projected Value of Time Recovered</span>
-                    <h3 className={styles.moneyVal}>${moneySaved.toLocaleString(undefined, {maximumFractionDigits: 0})} / mo</h3>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Based on daily dictation tasks and hourly rate value</p>
+                  <div className={styles.dashFinancialCard}>
+                    <span>Monthly Financial Value Saved</span>
+                    <h3 className={styles.dashFinancialVal}>${moneySaved.toLocaleString(undefined, {maximumFractionDigits: 0})} / mo</h3>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Projected savings on daily transcription workloads</p>
                   </div>
                 </div>
               </div>
@@ -966,177 +920,191 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 6. COMPETITOR COMPARISON MATRIX (Why Apptics Beats Competitors style) */}
-      {/* ========================================================================= */}
-      <section className={styles.section} style={{ background: '#ffffff' }}>
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 7 — WHY WHISPERTYPE WINS (Interactive comparison cards) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.winsComparisonSection}>
         <div className="container">
-          <div className={styles.sectionHeader}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--neon-blue)', fontWeight: 700, textTransform: 'uppercase' }}>Comparison</span>
-            <h2>Why WhisperType Pro Beats the Competitors</h2>
-            <p>Compare local speech intelligence with cloud utilities and standard text inputs.</p>
+          <div className={styles.comparisonHeader}>
+            <h2>Why WhisperType Pro Wins</h2>
+            <p>A modern comparative experience outlining the technical edge of WhisperType Pro.</p>
           </div>
 
-          <div className={styles.tableWrapper}>
-            <table className={styles.comparisonTable}>
-              <thead>
-                <tr>
-                  <th>Core Productivity Features</th>
-                  <th>Cloud Dictation Tools</th>
-                  <th>Wispr Flow</th>
-                  <th className={styles.tableActiveCol}>WhisperType Pro</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>100% Offline Model Inference</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-                <tr>
-                  <td><strong>Auto-Filler (um, you know) Eraser</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-                <tr>
-                  <td><strong>Speech-to-Command Editing Rewrites</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-                <tr>
-                  <td><strong>Personal Jargon Dictionary Map</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-                <tr>
-                  <td><strong>Developer Casing Outputs (camelCase)</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-                <tr>
-                  <td><strong>Windsurf / Cursor IDE File Tagging</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-                <tr>
-                  <td><strong>Local ONNX Hardware Acceleration</strong></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td><XCircle size={18} color="var(--neon-rose)" /></td>
-                  <td className={styles.tableActiveCol}><CheckCircle2 size={18} color="var(--neon-blue)" /></td>
-                </tr>
-              </tbody>
-            </table>
+          <div className={styles.winsGrid}>
+            {/* Card 1: Built-in Dictation */}
+            <GlassCard className={styles.winsCard} glowColor="none">
+              <h4 className={styles.winsCardTitle}>Built-in Dictation</h4>
+              <p className={styles.winsCardDesc}>Basic OS tools built for generic transcription logs.</p>
+              
+              <ul className={styles.winsChecklist}>
+                <li><XCircle size={15} color="var(--neon-rose)" /> 100% Offline Inference</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Auto-Filler Word Eraser</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Backtrack Vocal Corrections</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Developer casing formatting</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Speech-to-Command editing</li>
+              </ul>
+            </GlassCard>
+
+            {/* Card 2: Generic Speech-to-Text */}
+            <GlassCard className={styles.winsCard} glowColor="none">
+              <h4 className={styles.winsCardTitle}>Generic Speech-to-Text</h4>
+              <p className={styles.winsCardDesc}>Standard cloud utilities resolving voice documents.</p>
+              
+              <ul className={styles.winsChecklist}>
+                <li><XCircle size={15} color="var(--neon-rose)" /> 100% Offline Inference</li>
+                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Auto-Filler Word Eraser</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Backtrack Vocal Corrections</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Developer casing formatting</li>
+                <li><XCircle size={15} color="var(--neon-rose)" /> Speech-to-Command editing</li>
+              </ul>
+            </GlassCard>
+
+            {/* Card 3: WhisperType Pro */}
+            <GlassCard className={styles.winsCard} glowColor="teal" style={{ borderColor: 'var(--accent-teal)', borderWidth: '2px' }}>
+              <div className={styles.winsCardHeader}>
+                <h4 className={styles.winsCardTitle} style={{ color: 'var(--accent-teal)' }}>WhisperType Pro</h4>
+                <span className={styles.winsBadge}>Recommended</span>
+              </div>
+              <p className={styles.winsCardDesc}>Our offline local engine built for extreme workflow speeds.</p>
+              
+              <ul className={styles.winsChecklist}>
+                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> 100% Offline Inference</li>
+                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Auto-Filler Word Eraser</li>
+                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Backtrack Vocal Corrections</li>
+                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Developer casing formatting</li>
+                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Speech-to-Command editing</li>
+              </ul>
+            </GlassCard>
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 7. 4-STEP ONBOARDING STEPPER (Stepper in Reference Image) */}
-      {/* ========================================================================= */}
-      <section className={styles.section} style={{ background: '#f8fafc' }}>
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 8 — HOW IT WORKS (Horizontal Stepper timeline) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.howItWorksSection}>
         <div className="container">
-          <div className={styles.sectionHeader}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--neon-purple)', fontWeight: 700, textTransform: 'uppercase' }}>Onboarding</span>
-            <h2>Get Started on Autopilot</h2>
-            <p>Four simple milestones to move your workspace into the offline voice fastlane.</p>
+          <div className={styles.howHeader}>
+            <h2 className={styles.darkHeadline}>Horizontal timeline</h2>
+            <p className={styles.darkSubheadline}>Get started in four organic stages with zero friction.</p>
           </div>
 
-          <div className={styles.stepperContainerMatrix}>
+          <div className={styles.howHorizontalGrid}>
             {[
-              { step: "01", title: "Connect Dictation Engine", desc: "Download the client helper for Apple Silicon or Windows systems instantly." },
-              { step: "02", title: "Bind Global Activation Key", desc: "Select any preferred system-wide shortcut (e.g. keeping Caps Lock or fn triggers)." },
-              { step: "03", title: "Speak Jargons and Snippets", desc: "Add your tech stack, acronyms, or custom paste templates into the dictionary list." },
-              { step: "04", title: "Type Globally Anywhere", desc: "Hold key, dictate naturally, and let local Whisper engines do the heavy lifting." }
-            ].map((stepper, i) => (
-              <GlassCard key={i} className={styles.stepperCardItem} glowColor={i === 3 ? "blue" : "none"}>
-                <div className={styles.stepperNumBadge}>{stepper.step}</div>
-                <h4 className={styles.stepperTitle}>{stepper.title}</h4>
-                <p className={styles.stepperDesc}>{stepper.desc}</p>
+              { step: "01", title: "Connect Helper", desc: "Download and launch the offline helper natively matching your OS." },
+              { step: "02", title: "Speak Naturally", desc: "Hold down your global activation shortcut (Caps Lock) and start dictating." },
+              { step: "03", title: "AI Enhances Casing", desc: "Our localized models erase stutters, check dictionaries, and format casings." },
+              { step: "04", title: "Publish Globally", desc: "Release key. The output text auto-pastes instantly in Notion, Cursor, or Slack." }
+            ].map((st, i) => (
+              <GlassCard key={i} className={styles.howStepCard} isDark glowColor={i === 2 ? "lavender" : "none"}>
+                <div className={styles.howStepNum}>{st.step}</div>
+                <h4 className={styles.howStepTitle}>{st.title}</h4>
+                <p className={styles.howStepDesc}>{st.desc}</p>
               </GlassCard>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 8. 2-COLUMN FAQ ACCORDION (FAQ grid in Reference Image) */}
-      {/* ========================================================================= */}
-      <section id="faq" className={styles.section} style={{ background: '#ffffff' }}>
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 9 — TESTIMONIALS (Auto-Scrolling Infinite Marquee) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.testimonialsSection}>
         <div className="container">
-          <div className={styles.sectionHeader}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--neon-blue)', fontWeight: 700, textTransform: 'uppercase' }}>FAQ</span>
-            <h2>Curated Questions & Answers</h2>
-            <p>Find technical clarifications on hardware, backtracking correction rules, and privacy.</p>
+          <div className={styles.testimonialsHeader}>
+            <h2 className={styles.darkHeadline}>Love Letters To WhisperType</h2>
+            <p className={styles.darkSubheadline}>What developers, authors, and executives say about their dictation speeds.</p>
           </div>
+        </div>
 
-          <div className={styles.faqMatrixGrid}>
-            {faqData.map((item, i) => (
-              <div 
-                key={i} 
-                className={`${styles.faqItem} ${openFaq === i ? styles.faqItemActive : ""}`}
-              >
-                <button 
-                  onClick={() => toggleFaq(i)}
-                  className={styles.faqTrigger}
-                >
-                  <span>{item.q}</span>
-                  <ChevronDown size={18} className={`${styles.faqIcon} ${openFaq === i ? styles.faqIconActive : ""}`} />
-                </button>
-                <div 
-                  className={`${styles.faqContent} ${openFaq === i ? styles.faqContentActive : ""}`}
-                  style={{
-                    maxHeight: openFaq === i ? '200px' : '0px'
-                  }}
-                >
-                  <div className={styles.faqInner}>
-                    {item.a}
+        {/* Auto Scrolling Marquee Wall */}
+        <div className="marquee-container">
+          <div className="marquee-content">
+            {[
+              { name: "Sarah K.", role: "Senior Developer", quote: "Auto-camelCasing variable speech is a massive game-changer. I dictation-code all day inside Cursor." },
+              { name: "David L.", role: "Founder & CEO", quote: "No cloud lag, and 100% offline security means my voice dictations never trigger server flags." },
+              { name: "James M.", role: "Creative Author", quote: "Typing speed bottlenecks are gone. I dictation-draft my outlines in casual style natively." },
+              { name: "Elena R.", role: "SaaS Marketer", quote: "Vocal Command Mode is magic. Highlighted paragraphs rewrite to professional drafts instantly." },
+              { name: "Marcus P.", role: "Support Lead", quote: "Filler erasers are extremely accurate. Strips stutters so my customer Slack messages read flawlessly." }
+            ].map((t, i) => (
+              <GlassCard key={i} className={styles.testimonialMarqueeCard} isDark glowColor="teal">
+                <div className={styles.tHeader}>
+                  <div className={styles.tAvatar}>{t.name[0]}</div>
+                  <div>
+                    <h5 style={{ color: 'var(--text-white)', fontWeight: 700 }}>{t.name}</h5>
+                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>{t.role}</span>
                   </div>
                 </div>
-              </div>
+                <p className={styles.tQuote}>"{t.quote}"</p>
+                <div className={styles.tStars}><Star size={12} fill="var(--accent-lavender)" color="var(--accent-lavender)" /> 5.0 Core rating</div>
+              </GlassCard>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 9. FINAL CALL TO ACTION SECTION (Reference Image Footer Card style) */}
-      {/* ========================================================================= */}
-      <section id="download" className={styles.ctaSection}>
-        <div className={styles.ctaGlow} />
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 10 — FINAL CTA (Immersive Blurred Lavender Panel) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section id="download" className={styles.ctaImmersiveSection}>
+        {/* Soft Blurred Lavender and Peach Background Spheres */}
+        <div className={styles.ctaImmersiveSphere1} />
+        <div className={styles.ctaImmersiveSphere2} />
+
+        {/* Floating Background Micro-particles */}
+        <div className={`${styles.ctaParticle} ${styles.ctaParticle1}`} />
+        <div className={`${styles.ctaParticle} ${styles.ctaParticle2}`} />
+        <div className={`${styles.ctaParticle} ${styles.ctaParticle3}`} />
+        <div className={`${styles.ctaParticle} ${styles.ctaParticle4}`} />
+        <div className={`${styles.ctaParticle} ${styles.ctaParticle5}`} />
+        <div className={`${styles.ctaParticle} ${styles.ctaParticle6}`} />
+
+        {/* Animated Dotted Vector Flow Paths */}
+        <svg className={styles.ctaDottedSvg} viewBox="0 0 1440 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M-100,100 Q300,50 500,300 T1100,150 T1600,400" stroke="url(#gradientTeal)" strokeWidth="2" strokeDasharray="6 8" className={styles.ctaDottedPath1} />
+          <path d="M-50,450 Q400,500 700,200 T1200,450 T1500,150" stroke="url(#gradientLavender)" strokeWidth="1.5" strokeDasharray="4 6" className={styles.ctaDottedPath2} />
+          <defs>
+            <linearGradient id="gradientTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(0, 95, 90, 0.05)" />
+              <stop offset="50%" stopColor="rgba(0, 95, 90, 0.25)" />
+              <stop offset="100%" stopColor="rgba(0, 95, 90, 0.05)" />
+            </linearGradient>
+            <linearGradient id="gradientLavender" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(220, 198, 246, 0.05)" />
+              <stop offset="50%" stopColor="rgba(220, 198, 246, 0.3)" />
+              <stop offset="100%" stopColor="rgba(220, 198, 246, 0.05)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
         <div className="container">
           <motion.div 
-            className={styles.ctaCard}
+            className={styles.ctaImmersiveCard}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeUp}
           >
-            <h2>Unlock the Power of WhisperType Pro</h2>
-            <p>Ditch standard typing completely. Dictate developer code and system files natively at 150 WPM with absolute privacy.</p>
+            <h2 className={styles.ctaImmersiveHeadline}>Start Writing At The <br />Speed Of Thought.</h2>
+            <p className={styles.ctaImmersiveSubheadline}>Download the free open-source helper launcher and start dictating 4× faster than keyboards with absolute privacy.</p>
             
-            <div className={styles.heroBtns} style={{ justifyContent: 'center', marginTop: '1rem' }}>
+            <div className={styles.ctaImmersiveButtons}>
               <Button variant="primary">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                   <Apple size={18} /> Download macOS Client
                 </span>
               </Button>
-              <Button variant="secondary">
+              <Button variant="secondary" style={{ background: '#ffffff', color: '#111111' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <Monitor size={18} /> Download Windows Helper
+                  <Monitor size={18} /> Download Windows Client
                 </span>
               </Button>
             </div>
-            
-            <ul className={styles.ctaChecklist}>
-              <li><Check size={16} /> 100% Free Trial</li>
+
+            <ul className={styles.ctaImmersiveChecklist}>
+              <li><Check size={16} /> Free Forever</li>
+              <li><Check size={16} /> Fully Offline Whisper AI</li>
               <li><Check size={16} /> Less than 50MB installer</li>
-              <li><Check size={16} /> Zero Network Required</li>
             </ul>
           </motion.div>
         </div>

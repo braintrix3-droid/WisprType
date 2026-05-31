@@ -1,25 +1,25 @@
 .card {
-  padding: 2rem;
+  padding: 2.25rem;
   transition: all var(--transition-normal);
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(17, 17, 17, 0.12);
 }
 
-.blue:hover {
-  box-shadow: 0 10px 40px -10px rgba(0, 210, 255, 0.25);
-  border-color: rgba(0, 210, 255, 0.3);
+.teal:hover {
+  box-shadow: 0 20px 40px -15px rgba(0, 95, 90, 0.15);
+  border-color: rgba(0, 95, 90, 0.25);
 }
 
-.purple:hover {
-  box-shadow: 0 10px 40px -10px rgba(121, 40, 202, 0.25);
-  border-color: rgba(121, 40, 202, 0.3);
+.lavender:hover {
+  box-shadow: 0 20px 40px -15px rgba(220, 198, 246, 0.2);
+  border-color: rgba(220, 198, 246, 0.35);
 }
 
 .pink:hover {
-  box-shadow: 0 10px 40px -10px rgba(255, 0, 122, 0.25);
-  border-color: rgba(255, 0, 122, 0.3);
+  box-shadow: 0 20px 40px -15px rgba(251, 207, 232, 0.2);
+  border-color: rgba(251, 207, 232, 0.35);
 }
 
 .none:hover {
