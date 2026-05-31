@@ -98,6 +98,11 @@ export default function Home() {
   const [simText, setSimText] = useState("");
   const [desireTab, setDesireTab] = useState<'email' | 'notes' | 'linkedin' | 'proposal' | 'support' | 'code'>('email');
   const [activeProfile, setActiveProfile] = useState<'founder' | 'agency' | 'sales' | 'developer' | 'consultant' | 'creator'>('founder');
+  
+  // --- NEW V3 SANDBOX STATES ---
+  const [sandboxMode, setSandboxMode] = useState<'simulation' | 'live'>('simulation');
+  const [liveCleanText, setLiveCleanText] = useState("");
+  const [isLiveProcessing, setIsLiveProcessing] = useState(false);
 
   // --- V3 HERO LIVE WORKFLOW LOOP ---
   useEffect(() => {
@@ -586,6 +591,41 @@ export default function Home() {
     analyserRef.current = null;
   };
 
+  // --- Live Sandbox Dictation Helpers ---
+  const cleanLiveSpeechText = (raw: string, tab: string) => {
+    let text = raw.trim();
+    if (!text) return "";
+
+    // 1. Backtracking stutters cleaner: "meet at 2... actually 3" -> "meet at 3"
+    text = text.replace(/(\b\w+)\b\.{2,3}\s*actually\s*(\b\w+)\b/gi, '$2');
+    text = text.replace(/(\b\w+)\b\s+actually\s+(\b\w+)\b/gi, '$2');
+
+    // 2. Erase filler words (um, uh, like, you know)
+    text = text.replace(/\b(um|uh|like|you\s+know|ah)\b/gi, '');
+    text = text.replace(/\s+/g, ' ').trim();
+
+    // 3. Format based on selected app-awareness tab
+    if (tab === 'email') {
+      return `Hi Team,\n\nI wanted to follow up regarding: "${text}". Let's align on next steps.\n\nBest regards,\n[My Name]`;
+    } else if (tab === 'notes') {
+      return `### Action Items & Sync Notes\n- [ ] Verify focus target: "${text}"\n- [ ] Compile local schemas\n- [ ] Update pipeline triggers`;
+    } else if (tab === 'linkedin') {
+      return `🚀 SHIP FAST OR GET LEFT BEHIND.\n\nHere is how we resolved voice intent today:\n👉 "${text}"\n\nNo stutters. Direct caret placement. 100% offline.\n\n#AI #VoiceOS #SaaS`;
+    } else if (tab === 'code') {
+      const cleanWord = text.replace(/[^a-zA-Z0-9\s]/g, "");
+      const camelCased = cleanWord.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => 
+        index === 0 ? word.toLowerCase() : word.toUpperCase()
+      ).replace(/\s+/g, '');
+      return `public async ${camelCased || "getUserSession"}() {\n  return await this.db.resolveIntent();\n}`;
+    } else if (tab === 'proposal') {
+      return `### Project Proposal & Specs\n- **Core Intent**: ${text}\n- **Delivery Target**: Immediate deployment\n- **Privacy**: Local secure ONNX buffer`;
+    } else if (tab === 'support') {
+      return `Hi there,\n\nThank you for reaching out! Regarding your concern: "${text}", our engineering team has flagged this and is resolving it. Let us know if you need anything else.\n\nWhisperType Support`;
+    }
+    
+    return text;
+  };
+
   // Start Dictation
   const startRecording = () => {
     if (!SpeechRecognition) {
@@ -595,6 +635,7 @@ export default function Home() {
     setTranscript("");
     setInterimText("");
     setSpeechError("");
+    setLiveCleanText("");
     setIsRecording(true);
 
     try {
@@ -613,6 +654,21 @@ export default function Home() {
     }
     setIsRecording(false);
   };
+
+  // Real-time voice processing simulation effect
+  useEffect(() => {
+    if (!isRecording && (transcript || interimText)) {
+      setIsLiveProcessing(true);
+      setLiveCleanText("");
+      const timer = setTimeout(() => {
+        setIsLiveProcessing(false);
+        const raw = transcript || interimText;
+        const cleaned = cleanLiveSpeechText(raw, desireTab);
+        setLiveCleanText(cleaned);
+      }, 950);
+      return () => clearTimeout(timer);
+    }
+  }, [isRecording, transcript, interimText, desireTab]);
 
   // --- BEFORE/AFTER SPEED SIMULATOR ---
   const [beforeText, setBeforeText] = useState("");
@@ -938,48 +994,204 @@ export default function Home() {
           </div>
 
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            {/* Custom desire tabs */}
-            <div className={styles.contextTabsGrid} style={{ gridTemplateColumns: 'repeat(6, 1fr)', marginBottom: '2.5rem' }}>
-              {[
-                { id: 'email', label: 'Outreach Email' },
-                { id: 'notes', label: 'Meeting Notes' },
-                { id: 'linkedin', label: 'LinkedIn Post' },
-                { id: 'proposal', label: 'Proposal Outline' },
-                { id: 'support', label: 'Client Support' },
-                { id: 'code', label: 'Code Prompt' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setDesireTab(tab.id as any)}
-                  className={`${styles.contextTabBtn} ${desireTab === tab.id ? styles.contextTabBtnActive : ""}`}
-                  style={{ fontSize: '0.7rem' }}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            {/* Sandbox Mode Toggle Bar */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
+              <button 
+                onClick={() => setSandboxMode('simulation')} 
+                className={`${styles.contextTabBtn} ${sandboxMode === 'simulation' ? styles.contextTabBtnActive : ""}`}
+                style={{ padding: '0.6rem 2rem', fontSize: '0.8rem', borderRadius: '9999px', minWidth: '180px' }}
+              >
+                🖥️ Product Simulation
+              </button>
+              <button 
+                onClick={() => setSandboxMode('live')} 
+                className={`${styles.contextTabBtn} ${sandboxMode === 'live' ? styles.contextTabBtnActive : ""}`}
+                style={{ padding: '0.6rem 2rem', fontSize: '0.8rem', borderRadius: '9999px', minWidth: '180px' }}
+              >
+                🎙️ Test Live Mic OS
+              </button>
             </div>
 
-            {/* Display panel */}
-            <GlassCard className={styles.dictationWindowCard} style={{ padding: '3rem' }}>
-              <div className={styles.hudPlaygroundGrid} style={{ gridTemplateColumns: '1fr 1.1fr', gap: '3rem', alignItems: 'start' }}>
-                <div style={{ textAlign: 'left' }}>
-                  <span className={styles.hudBoxTag}>WHAT YOU SPELL / SPEAK:</span>
-                  <p style={{ fontSize: '1.15rem', fontStyle: 'italic', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '1rem 0' }}>
-                    "{desireExamples[desireTab].voice}"
-                  </p>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '2rem' }}>
-                    💡 No formatting commands, no punctuation triggers, no cloud latency bounds.
-                  </span>
+            {/* CASE 1: Simulation Mode (Static funnel outlines) */}
+            {sandboxMode === 'simulation' && (
+              <>
+                {/* Custom desire tabs */}
+                <div className={styles.contextTabsGrid} style={{ gridTemplateColumns: 'repeat(6, 1fr)', marginBottom: '2.5rem' }}>
+                  {[
+                    { id: 'email', label: 'Outreach Email' },
+                    { id: 'notes', label: 'Meeting Notes' },
+                    { id: 'linkedin', label: 'LinkedIn Post' },
+                    { id: 'proposal', label: 'Proposal Outline' },
+                    { id: 'support', label: 'Client Support' },
+                    { id: 'code', label: 'Code Prompt' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setDesireTab(tab.id as any)}
+                      className={`${styles.contextTabBtn} ${desireTab === tab.id ? styles.contextTabBtnActive : ""}`}
+                      style={{ fontSize: '0.7rem' }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
-                
-                <div style={{ textAlign: 'left', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '3rem' }}>
-                  <span className={styles.hudBoxTag} style={{ color: 'var(--accent-cyan)' }}>WHISPERTYPE V2 FINISHED WORK:</span>
-                  <pre style={{ margin: '1rem 0 0', padding: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 'var(--radius-md)', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                    {desireExamples[desireTab].clean}
-                  </pre>
+
+                {/* Display panel */}
+                <GlassCard className={styles.dictationWindowCard} style={{ padding: '3rem' }}>
+                  <div className={styles.hudPlaygroundGrid} style={{ gridTemplateColumns: '1fr 1.1fr', gap: '3rem', alignItems: 'start' }}>
+                    <div style={{ textAlign: 'left' }}>
+                      <span className={styles.hudBoxTag}>WHAT YOU SPELL / SPEAK:</span>
+                      <p style={{ fontSize: '1.15rem', fontStyle: 'italic', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '1rem 0' }}>
+                        "{desireExamples[desireTab].voice}"
+                      </p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '2rem' }}>
+                        💡 No formatting commands, no punctuation triggers, no cloud latency bounds.
+                      </span>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '3rem' }}>
+                      <span className={styles.hudBoxTag} style={{ color: 'var(--accent-cyan)' }}>WHISPERTYPE V2 FINISHED WORK:</span>
+                      <pre style={{ margin: '1rem 0 0', padding: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 'var(--radius-md)', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                        {desireExamples[desireTab].clean}
+                      </pre>
+                    </div>
+                  </div>
+                </GlassCard>
+              </>
+            )}
+
+            {/* CASE 2: Live Voice Testing Sandbox Mode */}
+            {sandboxMode === 'live' && (
+              <GlassCard className={styles.dictationWindowCard} style={{ padding: '3rem', border: '1px solid rgba(0, 183, 255, 0.25)', boxShadow: '0 0 50px rgba(0, 183, 255, 0.08)' }}>
+                <div className={styles.hudPlaygroundGrid} style={{ gridTemplateColumns: '1fr 1.1fr', gap: '3rem', alignItems: 'start' }}>
+                  <div style={{ textAlign: 'left' }}>
+                    <span className={styles.hudBoxTag}>LIVE VOICE TESTING PLAYGROUND:</span>
+                    
+                    {speechError && (
+                      <div style={{ background: 'rgba(244,63,94,0.06)', border: '1px solid rgba(244,63,94,0.15)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', color: 'var(--accent-rose)', fontSize: '0.8rem', margin: '1rem 0' }}>
+                        ⚠️ {speechError}
+                      </div>
+                    )}
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                        <button
+                          onClick={isRecording ? stopRecording : startRecording}
+                          style={{
+                            background: isRecording ? 'var(--accent-rose)' : 'rgba(0, 183, 255, 0.1)',
+                            border: isRecording ? '1px solid rgba(244,63,94,0.4)' : '1px solid rgba(0, 183, 255, 0.3)',
+                            boxShadow: isRecording ? '0 0 25px rgba(244,63,94,0.4)' : '0 0 15px rgba(0, 183, 255, 0.15)',
+                            color: '#fff',
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          {isRecording ? (
+                            <div style={{ width: '16px', height: '16px', background: '#fff', borderRadius: '2px' }} />
+                          ) : (
+                            <Mic size={24} style={{ color: 'var(--accent-cyan)' }} />
+                          )}
+                        </button>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 800 }}>
+                            {isRecording ? "Recording Audio..." : "Click Mic & Start Speaking"}
+                          </h4>
+                          <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            {isRecording ? `Timer: ${recordingTime}s (Hold-to-Talk Simulation)` : "Captures raw voice natively inside browser"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Real-time wave indicators when recording */}
+                      {isRecording && (
+                        <div style={{ display: 'flex', gap: '4px', height: '24px', alignItems: 'center' }}>
+                          {Array.from({ length: 18 }).map((_, idx) => (
+                            <div 
+                              key={idx}
+                              style={{
+                                width: '3px',
+                                height: `${Math.max(6, Math.floor(Math.random() * 24 + 4))}px`,
+                                background: 'var(--accent-cyan)',
+                                borderRadius: '99px',
+                                transition: 'all 0.1s ease'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Formatter context selector */}
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <span className={styles.hudBoxTag} style={{ marginBottom: '0.5rem', display: 'block' }}>APP FORMATTING CONTEXT:</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {[
+                            { id: 'email', label: 'Gmail (Email)' },
+                            { id: 'notes', label: 'Notion (MD Notes)' },
+                            { id: 'linkedin', label: 'LinkedIn (Social)' },
+                            { id: 'code', label: 'Cursor (Coding)' }
+                          ].map(opt => (
+                            <button
+                              key={opt.id}
+                              onClick={() => setDesireTab(opt.id as any)}
+                              style={{
+                                padding: '0.45rem 1rem',
+                                borderRadius: '9999px',
+                                fontSize: '0.7rem',
+                                background: desireTab === opt.id ? 'rgba(0, 183, 255, 0.15)' : 'rgba(255,255,255,0.02)',
+                                border: desireTab === opt.id ? '1px solid var(--accent-cyan)' : '1px solid rgba(255,255,255,0.05)',
+                                color: desireTab === opt.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ textAlign: 'left', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '3rem', minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <span className={styles.hudBoxTag}>RAW VOICE CAPTURE:</span>
+                      <div style={{ margin: '0.75rem 0 1.5rem', minHeight: '60px', color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', lineHeight: 1.5 }}>
+                        {transcript || interimText ? (
+                          <span>"{transcript} <span style={{ color: 'rgba(255,255,255,0.3)' }}>{interimText}</span>"</span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)' }}>"Speak something to see raw stutters capture..."</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className={styles.hudBoxTag} style={{ color: 'var(--accent-cyan)' }}>WHISPERTYPE V3 POLISHED WORK:</span>
+                      <pre style={{ margin: '0.75rem 0 0', padding: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 'var(--radius-md)', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'pre-wrap', lineHeight: 1.6, minHeight: '110px' }}>
+                        {isLiveProcessing ? (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-cyan)', fontSize: '0.75rem' }}>
+                            <RefreshCw size={14} className="animate-spin" />
+                            <span>Resolving stutters and casing guidelines...</span>
+                          </span>
+                        ) : liveCleanText ? (
+                          liveCleanText
+                        ) : (
+                          <span style={{ color: 'rgba(0, 183, 255, 0.4)' }}>
+                            {isRecording ? "Waiting for you to click stop..." : "Cleaned output will render here instantly."}
+                          </span>
+                        )}
+                      </pre>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            )}
           </div>
         </div>
       </section>
