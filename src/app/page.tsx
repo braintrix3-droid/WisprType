@@ -6,10 +6,11 @@ import {
   Mic, Shield, Zap, Keyboard, Sparkles, Copy, Check, 
   HelpCircle, ChevronDown, Download, Apple, Monitor, Play, 
   Settings, Terminal, FileText, CheckCircle2, XCircle, ArrowRight,
-  TrendingUp, Users, Plus, Trash2, Cpu
+  TrendingUp, Users, Plus, Trash2, Cpu, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { GlassCard } from '@/components/GlassCard';
+import { createClient } from '@/utils/supabase/client';
 import styles from './Home.module.css';
 
 // TypeScript Declarations for Web Speech API
@@ -17,6 +18,9 @@ const SpeechRecognition = typeof window !== 'undefined' &&
   ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 export default function Home() {
+  // Initialize Supabase Client
+  const supabase = createClient();
+
   // --- STATE FOR INTERACTIVE TIME SAVED CALCULATOR ---
   const [dailyWords, setDailyWords] = useState(2500);
   const [typingSpeed, setTypingSpeed] = useState(45);
@@ -53,6 +57,11 @@ export default function Home() {
     "casing": "camelCase"
   });
 
+  // Supabase Database States
+  const [dbSnippets, setDbSnippets] = useState<any[]>([]);
+  const [dbLoading, setDbLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   const recognitionRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -77,6 +86,55 @@ export default function Home() {
     });
   };
 
+  // --- Supabase DB Handlers ---
+  const fetchSnippets = async () => {
+    setDbLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(5);
+      if (!error && data) {
+        setDbSnippets(data);
+      }
+    } catch (err) {
+      console.error("Error fetching from Supabase:", err);
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  const saveToSupabase = async () => {
+    const textToSave = transcript + (interimText ? " " + interimText : "");
+    if (!textToSave.trim()) return;
+
+    setDbLoading(true);
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .insert([{ name: textToSave }]);
+      
+      if (!error) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        fetchSnippets(); // refresh synced logs
+      } else {
+        console.error("Supabase Save Error:", error.message);
+        setSpeechError(`Database save error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error("Supabase Save Exception:", err);
+      setSpeechError("Database save failed. Check console details.");
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSnippets();
+  }, []);
+
   // --- Advanced Casing & Filtering Rules ---
   const applySaaSFiltres = (rawText: string) => {
     let text = rawText;
@@ -97,7 +155,6 @@ export default function Home() {
       const cleanW = w.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
       const match = personalDictionary[cleanW];
       if (match) {
-        // preserve punctuation if any
         return w.toLowerCase().replace(cleanW, match);
       }
       return w;
@@ -108,8 +165,6 @@ export default function Home() {
     if (outputStyle === 'casual') {
       text = text.toLowerCase().replace(/[.]/g, ""); // lowercase, casual texts
     } else if (outputStyle === 'developer' || engineMode === 'developer') {
-      // camelCase conversion: "insert user id" -> "insertUserId"
-      // CLI format: "run dev server" -> "npm run dev"
       if (text.toLowerCase().includes("run dev")) {
         text = "npm run dev";
       } else if (text.toLowerCase().includes("git commit")) {
@@ -208,7 +263,6 @@ export default function Home() {
               
               const newHeights = Array.from({ length: 16 }, (_, index) => {
                 const freqVal = dataArray[index % bufferLength] || 0;
-                // Double volume boost if in Whisper sensitivity mode
                 const multiplier = engineMode === 'whisper' ? 1.6 : 1.0;
                 const height = Math.max(6, Math.min(42, (freqVal / 255) * 42 * multiplier + 6));
                 return height;
@@ -238,7 +292,6 @@ export default function Home() {
 
   const triggerSyntheticWave = () => {
     const interval = setInterval(() => {
-      // If whisper mode, make waves fluctuate higher
       const multiplier = engineMode === 'whisper' ? 1.5 : 1.0;
       setWaveHeights(Array.from({ length: 16 }, () => Math.floor((Math.random() * 26 + 8) * multiplier)));
     }, 100);
@@ -577,7 +630,21 @@ export default function Home() {
                   </div>
 
                   {(transcript || interimText) && (
-                    <div className={styles.copyRow}>
+                    <div className={styles.copyRow} style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button 
+                        onClick={saveToSupabase}
+                        disabled={dbLoading}
+                        className={`${styles.actionButton} ${saveSuccess ? styles.actionButtonCopied : ""}`}
+                      >
+                        {dbLoading ? (
+                          <RefreshCw size={14} className="animate-spin" />
+                        ) : saveSuccess ? (
+                          <><Check size={14} /> Saved!</>
+                        ) : (
+                          <><Shield size={14} /> Save to Supabase</>
+                        )}
+                      </button>
+                      
                       <button 
                         onClick={handleCopy}
                         className={`${styles.actionButton} ${copied ? styles.actionButtonCopied : ""}`}
@@ -637,6 +704,27 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* Live Supabase Sync Logs */}
+              <div className={styles.dbSnippetsContainer}>
+                <h4 className={styles.commandTitle}><Shield size={14} /> Live Supabase Database Log (`todos` Table)</h4>
+                {dbLoading && dbSnippets.length === 0 ? (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Syncing database logs...</div>
+                ) : dbSnippets.length === 0 ? (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    No dictations saved yet. Transcribe something above and click "Save to Supabase" to push it to the live cloud!
+                  </div>
+                ) : (
+                  <div className={styles.dbList}>
+                    {dbSnippets.map((item) => (
+                      <div key={item.id} className={styles.dbSnippetItem}>
+                        <span className={styles.dbId}>ID #{item.id}</span>
+                        <p className={styles.dbText}>{item.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Stats & Error Logs */}
