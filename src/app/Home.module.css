@@ -3,6 +3,10 @@
   position: relative;
   overflow: hidden;
   background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0, 183, 255, 0.06), transparent 50%),
+    radial-gradient(circle at 0% 50%, rgba(0, 102, 255, 0.04), transparent 40%),
+    radial-gradient(circle at 100% 80%, rgba(42, 232, 255, 0.05), transparent 45%);
 }
 
 .heroSection {
@@ -11,7 +15,11 @@
   min-height: 95vh;
   display: flex;
   align-items: center;
-  background: var(--gradient-ivory-white);
+  background: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 50% -20%, rgba(0, 183, 255, 0.15), transparent 60%),
+    radial-gradient(circle at 15% 30%, rgba(0, 102, 255, 0.08), transparent 45%),
+    linear-gradient(to bottom, transparent, var(--bg-secondary));
 }
 
 .heroGrid {
@@ -31,14 +39,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(0, 95, 90, 0.06);
-  border: 1px solid rgba(0, 95, 90, 0.12);
-  color: var(--accent-teal);
+  background: rgba(0, 183, 255, 0.08);
+  border: 1px solid rgba(0, 183, 255, 0.2);
+  color: var(--accent-cyan);
   padding: 0.4rem 1rem;
   border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 183, 255, 0.1);
 }
 
 .heroHeadline {
@@ -49,6 +58,14 @@
   margin-bottom: 1.5rem;
   letter-spacing: -0.03em;
   color: var(--text-primary);
+  text-shadow: 0 0 40px rgba(0, 183, 255, 0.22);
+}
+
+.heroHeadline span {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .heroSubheadline {
@@ -86,17 +103,25 @@
   width: 100%;
 }
 
+@keyframes floatHeroCard {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(0.5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
 .dictationWindowCard {
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(17, 17, 17, 0.05);
+  background: rgba(13, 17, 23, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 60px rgba(0, 183, 255, 0.12), inset 0 0 20px rgba(255, 255, 255, 0.02) !important;
+  animation: floatHeroCard 6s ease-in-out infinite;
 }
 
 .cardHeaderPane {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding-bottom: 1.25rem;
   margin-bottom: 1.5rem;
 }
@@ -126,11 +151,11 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: var(--accent-teal);
-  background: rgba(0, 95, 90, 0.06);
+  color: var(--accent-cyan);
+  background: rgba(0, 183, 255, 0.08);
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(0, 95, 90, 0.1);
+  border: 1px solid rgba(0, 183, 255, 0.15);
 }
 
 .cardInnerContent {
@@ -152,8 +177,8 @@
 .heroWaveBar {
   width: 4px;
   border-radius: var(--radius-full);
-  background: linear-gradient(180deg, var(--accent-teal), var(--accent-lavender));
-  opacity: 0.2;
+  background: linear-gradient(180deg, var(--accent-cyan), var(--accent-teal-dark));
+  opacity: 0.25;
   height: 6px;
 }
 
@@ -172,14 +197,14 @@
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-teal), var(--accent-lavender));
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal-dark));
   color: var(--text-white);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-normal);
   z-index: 2;
-  box-shadow: 0 10px 25px -5px rgba(0, 95, 90, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(0, 183, 255, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
   border: none;
   cursor: pointer;
 }
@@ -192,6 +217,7 @@
 
 .heroMicButton:hover {
   transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0, 183, 255, 0.45);
 }
 
 .heroMicActive:hover {
@@ -200,10 +226,10 @@
 
 .heroOutputControls {
   display: flex;
-  background: rgba(17, 17, 17, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   padding: 0.2rem;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(17, 17, 17, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   width: 100%;
 }
 
@@ -225,16 +251,17 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(17, 17, 17, 0.05);
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   width: 100%;
   margin-bottom: 1rem;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.01);
 }
 
 .spotlightTerminalIcon {
-  color: var(--accent-teal);
+  color: var(--accent-cyan);
 }
 
 .spotlightPlaceholder {
@@ -246,23 +273,23 @@
 }
 
 .spotlightShortcutBadge {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 183, 255, 0.15);
   font-family: monospace;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 0.2rem 0.5rem;
   border-radius: var(--radius-sm);
   letter-spacing: 0.05em;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .contextTabsGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.35rem;
-  background: rgba(17, 17, 17, 0.03);
-  border: 1px solid rgba(17, 17, 17, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 0.3rem;
   border-radius: var(--radius-lg);
   width: 100%;
@@ -286,22 +313,23 @@
 }
 
 .contextTabBtnActive {
-  background: #ffffff;
-  color: var(--accent-teal);
-  box-shadow: 0 4px 10px rgba(17, 17, 17, 0.06);
+  background: rgba(0, 183, 255, 0.1);
+  border: 1px solid rgba(0, 183, 255, 0.2);
+  color: var(--accent-cyan);
+  box-shadow: 0 4px 12px rgba(0, 183, 255, 0.08);
 }
 
 .contextTabBtn:hover:not(.contextTabBtnActive) {
   color: var(--text-primary);
-  background: rgba(17, 17, 17, 0.02);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .hudActivityMonitor {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  background: rgba(0, 95, 90, 0.02);
-  border: 1px dashed rgba(0, 95, 90, 0.15);
+  background: rgba(0, 183, 255, 0.02);
+  border: 1px dashed rgba(0, 183, 255, 0.2);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
@@ -338,20 +366,20 @@
 }
 
 .hudSpeechBox {
-  background: rgba(17, 17, 17, 0.01);
-  border: 1px solid rgba(17, 17, 17, 0.04);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: var(--radius-md);
   padding: 1rem;
   text-align: left;
 }
 
 .hudResultBox {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 95, 90, 0.1);
+  background: rgba(10, 14, 20, 0.8);
+  border: 1px solid rgba(0, 183, 255, 0.12);
   border-radius: var(--radius-md);
   padding: 1.25rem 1rem;
   text-align: left;
-  box-shadow: 0 4px 15px rgba(0, 95, 90, 0.02);
+  box-shadow: 0 0 30px rgba(0, 183, 255, 0.05), inset 0 0 15px rgba(255, 255, 255, 0.01);
   min-height: 120px;
   display: flex;
   flex-direction: column;
@@ -399,8 +427,8 @@
 .dbActionButton {
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius-sm);
-  background: #ffffff;
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
   font-size: 0.8rem;
   font-weight: 700;
@@ -412,17 +440,21 @@
 }
 
 .dbActionButton:hover {
-  border-color: var(--accent-teal);
+  border-color: var(--accent-cyan);
   color: var(--text-primary);
-  box-shadow: 0 4px 10px rgba(17, 17, 17, 0.04);
+  background: rgba(0, 183, 255, 0.08);
+  box-shadow: 0 0 15px rgba(0, 183, 255, 0.1);
 }
 
 /* SECTION 2 — PRODUCT IN ACTION (Dark Obsidian Orbit System) */
 .productInActionSection {
-  background: var(--bg-dark);
+  background: var(--bg-primary);
   padding: 9rem 0;
   position: relative;
   overflow: hidden;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(0, 183, 255, 0.08), transparent 50%),
+    linear-gradient(to bottom, var(--bg-secondary), var(--bg-primary));
 }
 
 .actionHeader {
@@ -438,10 +470,11 @@
   color: var(--text-white);
   letter-spacing: -0.02em;
   margin-bottom: 1rem;
+  text-shadow: 0 0 30px rgba(0, 183, 255, 0.15);
 }
 
 .darkSubheadline {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 1.1rem;
   line-height: 1.5;
 }
@@ -461,19 +494,19 @@
   border-radius: 50%;
   filter: blur(120px);
   z-index: -1;
-  opacity: 0.15;
+  opacity: 0.12;
 }
 
 .orbitGlow1 {
   width: 300px;
   height: 300px;
-  background: var(--accent-teal);
+  background: var(--accent-teal-dark);
 }
 
 .orbitGlow2 {
   width: 250px;
   height: 250px;
-  background: var(--accent-lavender);
+  background: var(--accent-teal);
 }
 
 .centralAppNode {
@@ -486,14 +519,14 @@
   justify-content: center;
   gap: 0.5rem;
   z-index: 5;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(0, 95, 90, 0.4) !important;
-  box-shadow: 0 0 30px rgba(0, 95, 90, 0.3) !important;
+  background: rgba(13, 17, 23, 0.8) !important;
+  border-color: rgba(0, 183, 255, 0.3) !important;
+  box-shadow: 0 0 40px rgba(0, 183, 255, 0.25) !important;
 }
 
 .centralIcon {
-  color: var(--accent-teal);
-  filter: drop-shadow(0 0 5px rgba(0, 95, 90, 0.5));
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 8px rgba(0, 183, 255, 0.6));
 }
 
 .centralLabel {
@@ -505,7 +538,7 @@
 .orbitTrack1, .orbitTrack2 {
   position: absolute;
   border-radius: 50%;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(0, 183, 255, 0.15);
   pointer-events: none;
 }
 
@@ -524,14 +557,14 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(13, 17, 23, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   z-index: 10;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 15px rgba(0, 183, 255, 0.05);
 }
 
 /* Curved path placements */
@@ -545,6 +578,7 @@
 .speedComparisonSection {
   background: var(--bg-primary);
   padding: 9rem 0;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0.06), transparent 60%);
 }
 
 .comparisonHeader {
@@ -560,6 +594,7 @@
   letter-spacing: -0.03em;
   color: var(--text-primary);
   margin-bottom: 1rem;
+  text-shadow: 0 0 35px rgba(0, 183, 255, 0.18);
 }
 
 .speedSubheadline {
@@ -582,6 +617,17 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 320px;
+  background: rgba(13, 17, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 50px rgba(0, 183, 255, 0.04);
+  transition: all var(--transition-normal);
+}
+
+.speedCard:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 183, 255, 0.25);
+  box-shadow: 0 0 60px rgba(0, 183, 255, 0.12), inset 0 0 15px rgba(255, 255, 255, 0.02);
 }
 
 .speedCardHeader {
@@ -597,8 +643,9 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  background: rgba(0, 95, 90, 0.06);
-  color: var(--accent-teal);
+  background: rgba(0, 183, 255, 0.1);
+  border: 1px solid rgba(0, 183, 255, 0.18);
+  color: var(--accent-cyan);
 }
 
 .speedCounter {
@@ -639,10 +686,13 @@
 
 /* SECTION 4 — 5 LAYERS OF VOICE INTELLIGENCE */
 .intelligenceLayersSection {
-  background: var(--bg-dark);
+  background: var(--bg-primary);
   padding: 9rem 0;
   position: relative;
   overflow: hidden;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(0, 183, 255, 0.08), transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(0, 102, 255, 0.08), transparent 50%);
 }
 
 .layersHeader {
@@ -659,9 +709,11 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(220, 198, 246, 0.1);
-  color: var(--accent-lavender);
+  background: rgba(0, 183, 255, 0.08);
+  border: 1px solid rgba(0, 183, 255, 0.2);
+  color: var(--accent-cyan);
   margin-bottom: 1.5rem;
+  box-shadow: 0 0 15px rgba(0, 183, 255, 0.05);
 }
 
 .layersHeader h2 {
@@ -671,10 +723,11 @@
   color: var(--text-white);
   margin-bottom: 1.25rem;
   letter-spacing: -0.02em;
+  text-shadow: 0 0 35px rgba(0, 183, 255, 0.18);
 }
 
 .layersHeader p {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 1.05rem;
   line-height: 1.6;
 }
@@ -700,7 +753,7 @@
   gap: 1.25rem;
   padding: 1.5rem;
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.01);
   border: 1px solid rgba(255, 255, 255, 0.04);
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -708,13 +761,14 @@
 }
 
 .layerSelectorBtnActive {
-  background: rgba(0, 95, 90, 0.06);
-  border-color: rgba(0, 95, 90, 0.2);
-  box-shadow: 0 10px 25px rgba(0, 95, 90, 0.05);
+  background: rgba(0, 183, 255, 0.08) !important;
+  border-color: rgba(0, 183, 255, 0.25) !important;
+  box-shadow: 0 0 25px rgba(0, 183, 255, 0.08) !important;
+  border-left: 3px solid var(--accent-cyan) !important;
 }
 
 .layerSelectorBtn:hover:not(.layerSelectorBtnActive) {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -722,8 +776,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -736,10 +790,10 @@
 }
 
 .layerSelectorBtnActive .layerStepBubble {
-  background: var(--accent-teal);
-  border-color: var(--accent-teal);
-  color: var(--text-white);
-  box-shadow: 0 0 10px rgba(0, 95, 90, 0.4);
+  background: var(--accent-cyan) !important;
+  border-color: var(--accent-cyan) !important;
+  color: #05070A;
+  box-shadow: 0 0 12px rgba(0, 183, 255, 0.5) !important;
 }
 
 .layerStepName {
@@ -752,7 +806,7 @@
 
 .layerStepDesc {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
@@ -785,9 +839,9 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(0, 95, 90, 0.1);
-  color: var(--accent-teal);
-  border: 1px solid rgba(0, 95, 90, 0.15);
+  background: rgba(0, 183, 255, 0.08) !important;
+  border: 1px solid rgba(0, 183, 255, 0.2) !important;
+  color: var(--accent-cyan) !important;
 }
 
 .simContent h4 {
@@ -816,29 +870,29 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 2px solid var(--accent-teal);
-  box-shadow: 0 0 20px rgba(0, 95, 90, 0.3);
+  border: 2px solid var(--accent-cyan) !important;
+  box-shadow: 0 0 25px rgba(0, 183, 255, 0.4) !important;
   animation: wavePulse 2s infinite ease-in-out;
 }
 
 @keyframes wavePulse {
   0% { transform: scale(0.9); opacity: 0.4; }
-  50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 30px rgba(0, 95, 90, 0.6); }
+  50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 35px rgba(0, 183, 255, 0.6); }
   100% { transform: scale(0.9); opacity: 0.4; }
 }
 
 .streamingText {
   font-family: monospace;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   font-style: italic;
   margin: 0;
 }
 
 /* Layer 2 Filler Sandbox */
 .fillerWordSandbox {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(13, 17, 23, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: var(--radius-md);
   padding: 2rem;
   margin-top: 1rem;
@@ -846,15 +900,15 @@
 
 .fillerTextContainer {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.8;
   font-weight: 500;
 }
 
 .strikeText {
   text-decoration: line-through;
-  color: rgba(244, 63, 94, 0.8);
-  background: rgba(244, 63, 94, 0.1);
+  color: rgba(244, 63, 94, 0.85);
+  background: rgba(244, 63, 94, 0.12);
   padding: 0.1rem 0.35rem;
   border-radius: var(--radius-sm);
   transition: all 0.8s ease-in-out;
@@ -874,19 +928,19 @@
 .simActionButton {
   padding: 0.6rem 1.25rem;
   border-radius: var(--radius-full);
-  background: var(--accent-teal);
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal-dark)) !important;
   color: var(--text-white);
   font-weight: 700;
   font-size: 0.85rem;
   border: none;
   cursor: pointer;
   transition: all var(--transition-normal);
-  box-shadow: 0 4px 15px rgba(0, 95, 90, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 183, 255, 0.2) !important;
 }
 
 .simActionButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 95, 90, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 183, 255, 0.35) !important;
 }
 
 .cleanedResultPane {
@@ -913,14 +967,14 @@
   flex-direction: column;
   gap: 0.25rem;
   transition: all var(--transition-normal);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .intentItemActive {
-  background: rgba(0, 95, 90, 0.06);
-  border-color: rgba(0, 95, 90, 0.2);
-  color: var(--accent-teal);
-  box-shadow: 0 4px 15px rgba(0, 95, 90, 0.03);
+  background: rgba(0, 183, 255, 0.08) !important;
+  border-color: rgba(0, 183, 255, 0.25) !important;
+  color: var(--accent-cyan) !important;
+  box-shadow: 0 0 15px rgba(0, 183, 255, 0.03) !important;
 }
 
 /* Layer 4 App Awareness */
@@ -999,8 +1053,9 @@
 
 /* SECTION 5 — 10-USP BENTO GRID SHOWCASE */
 .bentoSection {
-  background: var(--bg-dark);
+  background: var(--bg-primary);
   padding: 9rem 0;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0.05), transparent 60%);
 }
 
 .bentoHeader {
@@ -1023,6 +1078,17 @@
   min-height: 250px;
   display: flex;
   flex-direction: column;
+  background: rgba(13, 17, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 50px rgba(0, 183, 255, 0.03);
+  transition: all var(--transition-slow);
+}
+
+.bentoCard:hover {
+  transform: translateY(-5px) scale(1.005);
+  border-color: rgba(0, 183, 255, 0.25);
+  box-shadow: 0 0 60px rgba(0, 183, 255, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.02);
 }
 
 .colSpan2 {
@@ -1059,14 +1125,14 @@
 }
 
 .bentoSimBtn:hover {
-  background: rgba(0, 95, 90, 0.08);
-  border-color: rgba(0, 95, 90, 0.25);
-  color: var(--accent-teal);
+  background: rgba(0, 183, 255, 0.08);
+  border-color: rgba(0, 183, 255, 0.25);
+  color: var(--accent-cyan);
 }
 
 .bentoOutputSandbox {
-  background: rgba(0, 95, 90, 0.02);
-  border: 1px dashed rgba(0, 95, 90, 0.15);
+  background: rgba(0, 183, 255, 0.01);
+  border: 1px dashed rgba(0, 183, 255, 0.2);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   min-height: 160px;
@@ -1078,14 +1144,14 @@
   flex: 1;
   font-size: 0.85rem;
   line-height: 1.5;
-  color: var(--accent-teal);
+  color: var(--accent-cyan);
   margin-top: 0.5rem;
 }
 
 /* Chat Assistant Panel */
 .heyWhisperChatPanel {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 1rem;
   display: flex;
@@ -1112,15 +1178,16 @@
 }
 
 .chatMsgUser {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   align-self: flex-end;
   color: var(--text-white);
   border-bottom-right-radius: 0;
 }
 
 .chatMsgAI {
-  background: rgba(0, 95, 90, 0.06);
-  border: 1px solid rgba(0, 95, 90, 0.1);
+  background: rgba(0, 102, 255, 0.08);
+  border: 1px solid rgba(0, 183, 255, 0.2);
   align-self: flex-start;
   color: var(--text-white);
   border-bottom-left-radius: 0;
@@ -1155,9 +1222,9 @@
 }
 
 .chatPromptBtn:hover {
-  background: rgba(220, 198, 246, 0.08);
-  border-color: rgba(220, 198, 246, 0.2);
-  color: var(--accent-lavender);
+  background: rgba(0, 183, 255, 0.08);
+  border-color: rgba(0, 183, 255, 0.2);
+  color: var(--accent-cyan);
 }
 
 /* Automation triggers */
@@ -1169,14 +1236,14 @@
 
 .flyingTicketCard {
   position: absolute;
-  background: var(--accent-teal);
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal-dark));
   color: var(--text-white);
   font-weight: 700;
   font-size: 0.75rem;
   padding: 0.6rem 1rem;
   border-radius: var(--radius-sm);
   z-index: 100;
-  box-shadow: 0 10px 25px rgba(0, 95, 90, 0.4);
+  box-shadow: 0 10px 25px rgba(0, 183, 255, 0.3);
   animation: flyToNotion 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
@@ -1187,8 +1254,8 @@
 }
 
 .bentoNotionBoardMock {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   height: 200px;
@@ -1230,7 +1297,7 @@
 }
 
 .notionTaskCard {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 0.5rem;
   border-radius: var(--radius-sm);
@@ -1242,8 +1309,8 @@
 
 /* IDE Mode */
 .devIdeMockContainer {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-top: 1rem;
@@ -1265,8 +1332,8 @@
 
 /* ONNX Sandbox */
 .onnxLogsSandbox {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   margin-top: 1rem;
@@ -1289,10 +1356,10 @@
 }
 
 .onnxSwitchActive {
-  background: var(--accent-teal);
-  border-color: var(--accent-teal);
-  color: var(--text-white);
-  box-shadow: 0 0 10px rgba(0, 95, 90, 0.4);
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: #05070A;
+  box-shadow: 0 0 10px rgba(0, 183, 255, 0.4);
 }
 
 .onnxTerminalLogs {
@@ -1315,7 +1382,7 @@
 
 /* Meeting Summary */
 .meetingSummaryBox {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(10, 14, 20, 0.6);
   border: 1px dashed rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
   padding: 1.25rem;
@@ -1332,8 +1399,8 @@
 
 /* team snippets */
 .teamSnippetsSimulator {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   margin-top: 1rem;
@@ -1353,6 +1420,7 @@
 .calculatorSection {
   background: var(--bg-primary);
   padding: 9rem 0;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 183, 255, 0.06), transparent 60%);
 }
 
 .calculatorHeader {
@@ -1367,6 +1435,7 @@
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 1rem;
+  text-shadow: 0 0 35px rgba(0, 183, 255, 0.18);
 }
 
 .calculatorHeader p {
@@ -1382,7 +1451,9 @@
 
 .premiumCalculatorCard {
   padding: 3.5rem;
-  background: rgba(255,255,255,0.8);
+  background: rgba(13, 17, 23, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 60px rgba(0, 183, 255, 0.08) !important;
 }
 
 .calculatorSplitGrid {
@@ -1414,7 +1485,7 @@
 }
 
 .sliderHighlight {
-  color: var(--accent-teal);
+  color: var(--accent-cyan);
   font-size: 1.1rem;
   font-weight: 700;
 }
@@ -1425,7 +1496,7 @@
   width: 100%;
   height: 6px;
   border-radius: var(--radius-full);
-  background: rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.08) !important;
   outline: none;
   margin: 0.5rem 0;
 }
@@ -1436,9 +1507,9 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--accent-teal);
+  background: var(--accent-cyan) !important;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 95, 90, 0.4);
+  box-shadow: 0 0 12px var(--accent-cyan) !important;
   transition: transform 0.1s ease;
 }
 
@@ -1454,8 +1525,8 @@
 }
 
 .dashboardBlock {
-  background: rgba(17, 17, 17, 0.02);
-  border: 1px solid rgba(17, 17, 17, 0.05);
+  background: rgba(10, 14, 20, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: var(--radius-xl);
   padding: 2.5rem;
   display: flex;
@@ -1495,11 +1566,12 @@
 }
 
 .dashFinancialCard {
-  background: linear-gradient(135deg, rgba(0, 95, 90, 0.08) 0%, rgba(220, 198, 246, 0.08) 100%);
-  border: 1px solid rgba(0, 95, 90, 0.15);
+  background: linear-gradient(135deg, rgba(0, 183, 255, 0.08) 0%, rgba(0, 102, 255, 0.08) 100%) !important;
+  border: 1px solid rgba(0, 183, 255, 0.25) !important;
   border-radius: var(--radius-lg);
   padding: 1.75rem;
   text-align: center;
+  box-shadow: 0 0 30px rgba(0, 183, 255, 0.06) !important;
 }
 
 .dashFinancialVal {
@@ -1514,6 +1586,7 @@
 .winsComparisonSection {
   background: var(--bg-primary);
   padding: 9rem 0;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0.05), transparent 60%);
 }
 
 .winsGrid {
@@ -1525,7 +1598,17 @@
 .winsCard {
   padding: 3rem 2.5rem;
   text-align: left;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(13, 17, 23, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 0 40px rgba(0, 183, 255, 0.03) !important;
+  transition: all var(--transition-normal);
+}
+
+.winsCard:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 183, 255, 0.25) !important;
+  box-shadow: 0 0 50px rgba(0, 183, 255, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.02) !important;
 }
 
 .winsCardTitle {
@@ -1543,9 +1626,9 @@
 }
 
 .winsBadge {
-  background: rgba(0, 95, 90, 0.06);
-  border: 1px solid rgba(0, 95, 90, 0.15);
-  color: var(--accent-teal);
+  background: rgba(0, 183, 255, 0.1);
+  border: 1px solid rgba(0, 183, 255, 0.18);
+  color: var(--accent-cyan);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.25rem 0.65rem;
@@ -1571,8 +1654,9 @@
 
 /* SECTION 8 — HOW IT WORKS TIMELINE */
 .howItWorksSection {
-  background: var(--bg-dark);
+  background: var(--bg-primary);
   padding: 9rem 0;
+  background-image: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
 }
 
 .howHeader {
@@ -1593,13 +1677,25 @@
   display: flex;
   flex-direction: column;
   text-align: left;
+  background: rgba(13, 17, 23, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 0 40px rgba(0, 183, 255, 0.03) !important;
+  transition: all var(--transition-normal);
+}
+
+.howStepCard:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 183, 255, 0.25) !important;
+  box-shadow: 0 0 50px rgba(0, 183, 255, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.02) !important;
 }
 
 .howStepNum {
   font-family: var(--font-heading);
   font-size: 2rem;
   font-weight: 800;
-  color: var(--accent-teal);
+  color: var(--accent-cyan) !important;
+  text-shadow: 0 0 10px rgba(42, 232, 255, 0.4);
   margin-bottom: 1.5rem;
 }
 
@@ -1612,14 +1708,14 @@
 }
 
 .howStepDesc {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
 /* SECTION 9 — TESTIMONIALS (Marquee carousel) */
 .testimonialsSection {
-  background: var(--bg-dark);
+  background: var(--bg-primary);
   padding: 9rem 0;
   overflow: hidden;
 }
@@ -1633,8 +1729,9 @@
 .testimonialMarqueeCard {
   width: 320px;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.02) !important;
-  border-color: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(13, 17, 23, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 30px rgba(0, 183, 255, 0.02);
   flex-shrink: 0;
   text-align: left;
 }
@@ -1650,7 +1747,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: var(--accent-teal);
+  background: var(--accent-teal-dark);
   color: var(--text-white);
   display: flex;
   align-items: center;
@@ -1662,7 +1759,7 @@
 .tQuote {
   font-size: 0.95rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   margin-bottom: 1.25rem;
 }
 
@@ -1674,10 +1771,11 @@
 
 /* SECTION 10 — IMMERSIVE FINAL CTA */
 .ctaImmersiveSection {
-  background: var(--bg-dark);
+  background: var(--bg-primary);
   padding: 9rem 0;
   position: relative;
   overflow: hidden;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 183, 255, 0.08), transparent 60%);
 }
 
 .ctaImmersiveSphere1, .ctaImmersiveSphere2 {
@@ -1693,7 +1791,7 @@
   height: 500px;
   top: -100px;
   left: 20%;
-  background: var(--accent-lavender);
+  background: var(--accent-teal-dark);
 }
 
 .ctaImmersiveSphere2 {
@@ -1701,12 +1799,12 @@
   height: 400px;
   bottom: -50px;
   right: 15%;
-  background: var(--accent-teal);
+  background: var(--accent-cyan);
 }
 
 .ctaImmersiveCard {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(13, 17, 23, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: var(--radius-xl);
   padding: 6rem 3rem;
   text-align: center;
@@ -1714,6 +1812,7 @@
   -webkit-backdrop-filter: blur(32px);
   max-width: 1000px;
   margin: 0 auto;
+  box-shadow: 0 0 80px rgba(0, 183, 255, 0.1) !important;
 }
 
 .ctaImmersiveHeadline {
@@ -1727,7 +1826,7 @@
 }
 
 .ctaImmersiveSubheadline {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 1.15rem;
   max-width: 600px;
   margin: 0 auto 2.5rem;
@@ -1824,8 +1923,8 @@
 }
 
 .faqItem {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(15, 23, 42, 0.05);
+  background: rgba(13, 17, 23, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -1833,8 +1932,8 @@
 }
 
 .faqItemActive {
-  border-color: rgba(0, 95, 90, 0.2);
-  box-shadow: 0 10px 30px rgba(0, 95, 90, 0.04);
+  border-color: rgba(0, 183, 255, 0.25) !important;
+  box-shadow: 0 0 30px rgba(0, 183, 255, 0.06), inset 0 0 10px rgba(255, 255, 255, 0.02) !important;
 }
 
 .faqTrigger {
@@ -1854,7 +1953,7 @@
 }
 
 .faqTrigger:hover {
-  color: var(--accent-teal);
+  color: var(--accent-cyan) !important;
 }
 
 .faqIcon {
@@ -1864,7 +1963,7 @@
 
 .faqIconActive {
   transform: rotate(180deg);
-  color: var(--accent-teal);
+  color: var(--accent-cyan) !important;
 }
 
 .faqContent {

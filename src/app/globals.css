@@ -1,30 +1,33 @@
 :root {
-  /* Core Color System (Wispr Flow SaaS Aesthetic) */
-  --bg-primary: #F5F2E8;     /* Warm Ivory */
-  --bg-dark: #111111;        /* Dark Obsidian */
-  --bg-surface: rgba(255, 255, 255, 0.7);
-  --bg-dark-surface: rgba(255, 255, 255, 0.03);
+  /* Core Color System (Futuristic Deep Blue SaaS Redesign) */
+  --bg-primary: #05070A;      /* Pure Dark Background */
+  --bg-dark: #05070A;         /* Secondary Dark Background */
+  --bg-secondary: #0A0E14;    /* Surface dark */
+  --bg-card: #0D1117;         /* Deep Card Background */
+  --bg-surface: rgba(13, 17, 23, 0.7);
+  --bg-dark-surface: rgba(17, 24, 39, 0.45);
   
-  --text-primary: #111111;   /* Dark Obsidian Text */
-  --text-secondary: #5E5E5E; /* Medium Slate Text */
-  --text-muted: #8e8e8e;
+  --text-primary: #FFFFFF;    /* Premium White Text */
+  --text-secondary: #A0AEC0;  /* Cool Slate Text */
+  --text-muted: #718096;      /* Tertiary Text */
   --text-white: #FFFFFF;
   
   /* Accents */
-  --accent-teal: #005F5A;    /* Primary Teal */
-  --accent-teal-dark: #004D49;
-  --accent-lavender: #DCC6F6;/* Soft Lavender */
-  --accent-pink: #fbcfe8;
+  --accent-teal: #00B7FF;     /* Primary Glow Blue */
+  --accent-teal-dark: #0066FF;/* Secondary Glow Blue */
+  --accent-lavender: #7DD3FC; /* Highlight Ice Blue */
+  --accent-pink: #00B7FF;
+  --accent-cyan: #2AE8FF;     /* Cyber Cyan Accent */
   
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, var(--accent-teal) 0%, #004d49 50%, var(--accent-lavender) 100%);
-  --gradient-ivory-white: linear-gradient(180deg, var(--bg-primary) 0%, #FFFFFF 100%);
+  --gradient-primary: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 50%, var(--accent-teal-dark) 100%);
+  --gradient-ivory-white: radial-gradient(circle at 50% -20%, rgba(0, 183, 255, 0.15), transparent 60%), #05070A;
   --gradient-teal-dark: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-teal-dark) 100%);
-  --gradient-lavender-pink: linear-gradient(135deg, var(--accent-lavender) 0%, #fbcfe8 100%);
-  --gradient-border: linear-gradient(145deg, rgba(255, 255, 255, 0.7) 0%, rgba(17, 17, 17, 0.05) 100%);
-  --gradient-dark-border: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --gradient-lavender-pink: linear-gradient(135deg, var(--accent-lavender) 0%, var(--accent-cyan) 100%);
+  --gradient-border: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 183, 255, 0.03) 100%);
+  --gradient-dark-border: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 102, 255, 0.02) 100%);
   
-  /* Radii - Wispr-style organic 24px rounded corners */
+  /* Radii */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -71,18 +74,18 @@ button {
   background: var(--bg-surface);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(17, 17, 17, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(13, 17, 23, 0.7);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-xl);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 40px -10px rgba(17, 17, 17, 0.03), 0 1px 3px rgba(17, 17, 17, 0.01);
+  box-shadow: 0 0 60px rgba(0, 183, 255, 0.08);
 }
 
 .glass-card::before {
@@ -100,13 +103,14 @@ button {
 
 /* Dark Glassmorphism for Dark Sections */
 .dark-glass-card {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(10, 14, 20, 0.65);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-xl);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 0 60px rgba(0, 102, 255, 0.06);
 }
 
 .dark-glass-card::before {
