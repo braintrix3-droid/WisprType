@@ -1,0 +1,27 @@
+.card {
+  padding: 2rem;
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.blue:hover {
+  box-shadow: 0 10px 40px -10px rgba(0, 210, 255, 0.25);
+  border-color: rgba(0, 210, 255, 0.3);
+}
+
+.purple:hover {
+  box-shadow: 0 10px 40px -10px rgba(121, 40, 202, 0.25);
+  border-color: rgba(121, 40, 202, 0.3);
+}
+
+.pink:hover {
+  box-shadow: 0 10px 40px -10px rgba(255, 0, 122, 0.25);
+  border-color: rgba(255, 0, 122, 0.3);
+}
+
+.none:hover {
+  box-shadow: none;
+}
