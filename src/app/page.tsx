@@ -6,7 +6,8 @@ import {
   Mic, Shield, Zap, Keyboard, Sparkles, Copy, Check, 
   HelpCircle, ChevronDown, Download, Apple, Monitor, Play, 
   Settings, Terminal, FileText, CheckCircle2, XCircle, ArrowRight,
-  TrendingUp, Users, Plus, Trash2, Cpu, RefreshCw, Star, Mail, FileCode
+  TrendingUp, Users, Plus, Trash2, Cpu, RefreshCw, Star, Mail, FileCode,
+  DollarSign, Clock, CheckSquare, AlertTriangle, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { GlassCard } from '@/components/GlassCard';
@@ -77,6 +78,7 @@ export default function Home() {
   const [typingIntervalId, setTypingIntervalId] = useState<any>(null);
   const [activeLayer, setActiveLayer] = useState<number>(1);
   const [layer2Cleaned, setLayer2Cleaned] = useState<boolean>(false);
+
   // --- STATES FOR 10 USP BENTO SIMULATORS ---
   const [commandsText, setCommandsText] = useState("hey team just wanted to let you know that we got the local transcription compiler working, let's push the dev code tonight");
   const [whisperMessages, setWhisperMessages] = useState<any[]>([
@@ -90,6 +92,116 @@ export default function Home() {
   const [meetingActive, setMeetingActive] = useState(false);
   const [meetingSummaryReady, setMeetingSummaryReady] = useState(false);
   const [jargonList, setJargonList] = useState<string[]>(["windsurf", "cursor", "saas"]);
+
+  // --- NEW V3 STATES ---
+  const [simStage, setSimStage] = useState<1 | 2 | 3>(1);
+  const [simText, setSimText] = useState("");
+  const [desireTab, setDesireTab] = useState<'email' | 'notes' | 'linkedin' | 'proposal' | 'support' | 'code'>('email');
+  const [activeProfile, setActiveProfile] = useState<'founder' | 'agency' | 'sales' | 'developer' | 'consultant' | 'creator'>('founder');
+
+  // --- V3 HERO LIVE WORKFLOW LOOP ---
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    let typeInterval: NodeJS.Timeout;
+    
+    const runSim = () => {
+      setSimStage(1);
+      setSimText("");
+      
+      timer = setTimeout(() => {
+        setSimStage(2);
+        timer = setTimeout(() => {
+          setSimStage(3);
+          const emailText = "Hi Team,\n\nI have successfully finalized the demo of the V3 sales funnel upgrade. The local voice compiler and offline ONNX privacy engine are staging correctly. Let's launch this tonight!\n\nBest regards,\nSarah";
+          let currentIdx = 0;
+          const words = emailText.split(" ");
+          
+          typeInterval = setInterval(() => {
+            setSimText(prev => {
+              if (currentIdx < words.length) {
+                const nextVal = prev ? prev + " " + words[currentIdx] : words[currentIdx];
+                currentIdx++;
+                return nextVal;
+              } else {
+                clearInterval(typeInterval);
+                return prev;
+              }
+            });
+          }, 120);
+          
+          timer = setTimeout(() => {
+            runSim();
+          }, 9000);
+        }, 2200);
+      }, 3200);
+    };
+
+    runSim();
+    return () => {
+      clearTimeout(timer);
+      clearInterval(typeInterval);
+    };
+  }, []);
+
+  const profileExamples = {
+    founder: {
+      title: "Founder / CEO",
+      voice: "hey marcus send a quick investor update we just launched V3 checkout the dashboard",
+      clean: "Hi Marcus,\n\nPlease draft and dispatch a brief investor update announcing that we have successfully launched WhisperType V3. Urge them to review the analytics on the dashboard.\n\nBest,\nSarah"
+    },
+    agency: {
+      title: "Agency Owner",
+      voice: "schedule proposal reviews for acme they liked the design but want the scope tweaked",
+      clean: "Acme Corp | Proposal Review\n• Status: Loved design drafts but requested minor scope adjustments.\n• Action: Schedule follow-up scope review meeting."
+    },
+    sales: {
+      title: "Sales Professional",
+      voice: "just got off call with lead want demo next week send the contract outline",
+      clean: "Lead Sync Action Items:\n1. Schedule comprehensive platform demo next Tuesday.\n2. Send over standard NDA and contract outline today."
+    },
+    developer: {
+      title: "Software Engineer",
+      voice: "create public async method get product stats returning database array",
+      clean: "public async getProductStats(): Promise<ProductItem[]> {\n  return await this.db.products.find();\n}"
+    },
+    consultant: {
+      title: "Management Consultant",
+      voice: "outline deliverables for the performance optimization audit due next friday",
+      clean: "### Deliverables Checklist\n- [ ] Complete performance audit roadmap findings\n- [ ] Staging pipeline latency verification list (due Friday)"
+    },
+    creator: {
+      title: "Content Creator",
+      voice: "make a quick post saying typing is dead voice to work is the future",
+      clean: "🚀 Typing is officially a bottleneck. The future isn't speech-to-text; it's Voice to Work. Join the movement. 🎙️ #VoiceOS #AI #Productivity"
+    }
+  };
+
+  const desireExamples = {
+    email: {
+      voice: "draft a follow up email saying we got the specs and want a sync next week",
+      clean: "Hi Team,\n\nI confirm we have successfully received all project specifications. Let's schedule a brief sync next week to align on details.\n\nBest regards,\n[My Name]"
+    },
+    notes: {
+      voice: "met with lead marcus loved the privacy mode wants contract on monday",
+      clean: "### Lead Sync: Marcus\n- **Feedback**: Loved offline local privacy features.\n- **Action Item**: Deliver NDA and contract outline on Monday."
+    },
+    linkedin: {
+      voice: "voice operating systems are going to replace standard typing completely",
+      clean: "🚀 Typing is officially a bottleneck. The future of productivity isn't speech-to-text; it's Voice to Work. 🎙️ #Productivity #AI #SaaS"
+    },
+    proposal: {
+      voice: "outline pricing strategy audit due next week and resource scope targets",
+      clean: "### Project Deliverables\n- [ ] Finalize pricing strategy audit report (due next week)\n- [ ] Audit resource target scoping matrices"
+    },
+    support: {
+      voice: "sorry about the delay the offline helper is now active you can download it",
+      clean: "Hi Marcus,\n\nI apologize for the delay. The offline launcher helper is now active. You may download it directly from your control dashboard.\n\nBest,\nSupport Team"
+    },
+    code: {
+      voice: "create async function fetch target node items mapping inputs",
+      clean: "async fetchTargetNodeItems(nodeId: string): Promise<NodeItem[]> {\n  return await this.api.get(`/nodes/${nodeId}`);\n}"
+    }
+  };
 
   const runVoiceCommand = (cmd: 'pro' | 'concise' | 'bullets' | 'hindi') => {
     if (cmd === 'pro') {
@@ -162,6 +274,7 @@ export default function Home() {
       setMeetingSummaryReady(true);
     }, 4000);
   };
+
   useEffect(() => {
     if (typingIntervalId) clearInterval(typingIntervalId);
     setTranscript("");
@@ -501,22 +614,6 @@ export default function Home() {
     setIsRecording(false);
   };
 
-  // AI Command Rewrites (Vocal Command Mode)
-  const applyAICommand = (cmd: 'make-pro' | 'bulleted' | 'make-casual') => {
-    const currentText = transcript || "Hey, let's ship this dev code to make it work";
-    
-    let transformed = currentText;
-    if (cmd === 'make-pro') {
-      transformed = "I am pleased to notify you that the development code has been fully optimized and is ready for production deployment.";
-    } else if (cmd === 'make-casual') {
-      transformed = "hey guys, just got the local transcription working. let's push this tonight! 🙌";
-    } else if (cmd === 'bulleted') {
-      transformed = "- Implement local voice transcription\n- Set up custom personal dictionary\n- Format developer auto-casing rules";
-    }
-    setTranscript(transformed);
-    setInterimText("");
-  };
-
   // --- BEFORE/AFTER SPEED SIMULATOR ---
   const [beforeText, setBeforeText] = useState("");
   const [afterText, setAfterText] = useState("");
@@ -577,20 +674,24 @@ export default function Home() {
 
   const faqData = [
     {
-      q: "Is WhisperType V2 strictly better than Wispr Flow?",
-      a: "Yes. While Flow offers basic dictation, WhisperType V2 is a complete on-device AI Voice Operating System combining speech capture, intent detection, voice template modifiers, and native workflow integrations (like triggering Notion database tasks or writing Cursor developer syntax instantly) entirely offline."
+      q: "Will it understand my accent?",
+      a: "Yes. WhisperType V2 utilizes locally quantized, high-accuracy weights optimized to map regional accents and resolve words through custom dictionary rules, entirely offline."
     },
     {
-      q: "Does the voice workflow automation require remote servers?",
-      a: "No. All intent resolving, casing adaptations, and local ONNX model compilations execute natively on-device. Telemetry states remain completely offline, preserving extreme security and confidential document privacy."
+      q: "Can I use it inside Gmail?",
+      a: "Absolutely. As a native global AI Voice Operating System, it hooks directly into your cursor caret, functioning perfectly within Gmail, Slack, Cursor IDE, Notion, HubSpot, or any browser text field."
     },
     {
-      q: "How does the backtrack voice correction work?",
-      a: "If you change your mind mid-sentence (e.g. speaking 'Let's commit to GitHub... actually GitLab'), WhisperType V2 recognizes the correction trigger word 'actually' and automatically rewrites the preceding target word locally before outputting."
+      q: "What about privacy?",
+      a: "WhisperType operates completely on-device. Zero cloud packets, zero servers, and zero remote databases are used. Your voice recordings and transcripts remain entirely within your hardware bounds."
     },
     {
-      q: "Can I use it inside Cursor, Windsurf, or VS Code?",
-      a: "Yes. It maps natively to standard text buffers. Additionally, you can speak tags like 'file tagging' alongside coding prompts, and WhisperType V2 imports the correct file paths straight into your LLM assistant."
+      q: "Does it work for coding?",
+      a: "Yes. Developer Mode maps spoken programming prompts into clean TypeScript variables and casing standards (like camelCase formatting) matching VS Code and Cursor environments."
+    },
+    {
+      q: "How accurate is it?",
+      a: "By feeding speech through our 5-layered intelligence pipeline—erasing stutters, stripping filler words, and resolving verbal backtracking ('meet at 2... actually 3')—you get 99.4% finished-work precision."
     }
   ];
 
@@ -605,7 +706,8 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      {/* ---------------------------------------------------------------      {/* SECTION 1 — HERO (Warm Ivory Background with Pill Buttons & Floating Spotlight HUD) */}
+      {/* ------------------------------------------------------------------------- */}
+      {/* ABOVE THE FOLD - HERO SECTION (Aspirational Funnel Redesign) */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.heroSection}>
         <div className="container">
@@ -617,30 +719,30 @@ export default function Home() {
               variants={fadeUp}
             >
               <div className={styles.heroBadge}>
-                <Sparkles size={13} /> AI Voice Operating System v2.0
+                <Sparkles size={13} /> AI Voice Operating System v3.0
               </div>
               <h1 className={styles.heroHeadline}>
-                Voice To Work. <br />
-                <span className="text-gradient">Speak Naturally. Ship Faster.</span>
+                Speak Naturally. <br />
+                <span className="text-gradient">Ship Faster.</span>
               </h1>
               <p className={styles.heroSubheadline}>
-                WhisperType V2 is a voice-first operating system that converts spoken thoughts directly into finished emails, Slack messages, Notion tasks, database logs, and code. Your words. Instantly finished.
+                Turn ideas into finished emails, messages, documents, code, and tasks using the world's smartest AI voice workflow. Stop typing, start flowing.
               </p>
               <div className={styles.heroCTAButtons}>
                 <Button variant="primary" onClick={() => {
-                  document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
                 }}>
                   <span>Get Voice OS Free</span>
                 </Button>
                 <Button variant="secondary" onClick={() => {
-                  document.getElementById('playground')?.scrollIntoView({ behavior: 'smooth' });
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
                 }}>
-                  <span>Try 10 OS Features</span>
+                  <span>Watch Demo</span>
                 </Button>
               </div>
             </motion.div>
  
-            {/* Right: Interactive Spotlight HUD Sandbox */}
+            {/* Right: Live Looping Workflow Simulation HUD */}
             <motion.div 
               className={styles.heroRight}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -648,45 +750,28 @@ export default function Home() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
               <GlassCard className={styles.dictationWindowCard} glowColor="teal">
-                {/* Spotlight/Raycast Header Command Bar */}
+                {/* Spotlight Header Bar */}
                 <div className={styles.spotlightHeaderBar}>
                   <Terminal size={16} className={styles.spotlightTerminalIcon} />
                   <span className={styles.spotlightPlaceholder}>WhisperType Voice OS Spotlight</span>
                   <div className={styles.spotlightShortcutBadge}>Ctrl + Win</div>
                 </div>
 
-                {/* Horizontal App Context Tabs */}
-                <div className={styles.contextTabsGrid}>
-                  {[
-                    { id: 'gmail', label: 'Gmail', icon: Mail },
-                    { id: 'slack', label: 'Slack', icon: Terminal },
-                    { id: 'notion', label: 'Notion', icon: FileText },
-                    { id: 'cursor', label: 'Cursor IDE', icon: FileCode },
-                    { id: 'crm', label: 'HubSpot CRM', icon: TrendingUp }
-                  ].map((t) => {
-                    const IconComponent = t.icon;
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() => setActiveTab(t.id as any)}
-                        className={`${styles.contextTabBtn} ${activeTab === t.id ? styles.contextTabBtnActive : ""}`}
-                      >
-                        <IconComponent size={13} />
-                        <span>{t.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Intelligence Layer Activity Panel */}
-                <div className={styles.hudActivityMonitor}>
+                {/* Simulated Steps Monitor */}
+                <div className={styles.hudActivityMonitor} style={{ marginBottom: '1.25rem' }}>
                   <div className={styles.monitorStat}>
-                    <span className={styles.monitorLabel}>Active Ruleset:</span>
-                    <strong className={styles.monitorVal}>{appDictationExamples[activeTab].rules}</strong>
+                    <span className={styles.monitorLabel}>Pipeline Stage:</span>
+                    <strong className={styles.monitorVal} style={{ color: simStage === 3 ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+                      {simStage === 1 && "🎙️ 1. Capturing Speech"}
+                      {simStage === 2 && "⚡ 2. Resolving Intent"}
+                      {simStage === 3 && "✓ 3. Flowing Finished Work"}
+                    </strong>
                   </div>
                   <div className={styles.monitorStat}>
                     <span className={styles.monitorLabel}>Intent Resolved:</span>
-                    <strong className={styles.monitorVal} style={{ color: 'var(--accent-teal)' }}>{appDictationExamples[activeTab].intent}</strong>
+                    <strong className={styles.monitorVal} style={{ color: 'var(--accent-teal)' }}>
+                      {simStage === 1 ? "Listening..." : simStage === 2 ? "Outlining..." : "Outreach Email"}
+                    </strong>
                   </div>
                 </div>
 
@@ -696,62 +781,51 @@ export default function Home() {
                     {waveHeights.map((h, i) => (
                       <div 
                         key={i} 
-                        className={`${styles.heroWaveBar} ${isRecording ? styles.heroWaveActive : ""}`}
+                        className={`${styles.heroWaveBar} ${simStage === 1 ? styles.heroWaveActive : ""}`}
                         style={{ 
-                          height: `${h}px`,
-                          transition: isRecording ? 'height 0.08s ease' : 'height 0.3s ease'
+                          height: simStage === 1 ? `${Math.max(6, Math.floor(Math.random() * 32 + 6))}px` : '6px',
+                          transition: 'height 0.08s ease'
                         }}
                       />
                     ))}
                   </div>
 
-                  {/* Mic Toggle Button */}
-                  <div className={styles.heroMicBtnWrapper} style={{ marginBottom: '1.5rem' }}>
-                    <button 
-                      onClick={isRecording ? stopRecording : startRecording}
-                      className={`${styles.heroMicButton} ${isRecording ? styles.heroMicActive : ""}`}
-                    >
-                      <Mic size={26} />
-                    </button>
-                    {isRecording && <div className="record-pulse-active" style={{ position: 'absolute', width: '60px', height: '60px', borderRadius: '50%', pointerEvents: 'none' }} />}
+                  {/* Visual processing spinner in Stage 2 */}
+                  <div style={{ height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {simStage === 2 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-cyan)', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                        <RefreshCw size={14} className="animate-spin" />
+                        <span>Compiling stutters & casing formats...</span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Real-time Text Box (Raw vs Format side-by-side) */}
-                  <div className={styles.hudPlaygroundGrid}>
-                    <div className={styles.hudSpeechBox}>
-                      <span className={styles.hudBoxTag}>User Spoke Naturally:</span>
-                      <p className={styles.hudRawSpeechText}>"{appDictationExamples[activeTab].raw}"</p>
+                  {/* Real-time Text Box (Transformation Showcase) */}
+                  <div className={styles.hudPlaygroundGrid} style={{ marginTop: '0.5rem' }}>
+                    <div className={styles.hudSpeechBox} style={{ background: simStage === 1 ? 'rgba(0,183,255,0.02)' : 'rgba(255,255,255,0.01)' }}>
+                      <span className={styles.hudBoxTag}>User Spoke Naturally (Stage 1):</span>
+                      <p className={styles.hudRawSpeechText}>
+                        {simStage >= 1 ? '"draft a follow up email for the client... actually team loved the V3 deep blue proposal let\'s ship this"' : 'Waiting...'}
+                      </p>
                     </div>
                     
-                    <div className={styles.hudResultBox}>
-                      <span className={styles.hudBoxTag} style={{ color: 'var(--accent-teal)' }}>Voice OS Finished Work:</span>
+                    <div className={styles.hudResultBox} style={{ border: simStage === 3 ? '1px solid var(--accent-cyan)' : '1px solid rgba(255,255,255,0.08)' }}>
+                      <span className={styles.hudBoxTag} style={{ color: 'var(--accent-cyan)' }}>Voice OS Finished Work (Stage 3):</span>
                       <div className={styles.hudCleanOutputBox}>
-                        {transcript || interimText ? (
+                        {simStage === 3 && simText ? (
                           <>
-                            <span style={{ whiteSpace: 'pre-line' }}>{transcript}</span>
-                            {interimText && <span style={{ opacity: 0.5 }}>{" " + interimText}</span>}
+                            <span style={{ whiteSpace: 'pre-line', color: 'var(--accent-cyan)' }}>{simText}</span>
                           </>
                         ) : (
                           <span className={styles.heroPlaceholder}>
-                            Press Ctrl+Win to dictate or click tabs to simulate...
+                            {simStage === 1 && "Capturing spoken audio stream..."}
+                            {simStage === 2 && "Synthesizing tone context..."}
                           </span>
                         )}
-                        <span className={styles.speedCursor} style={{ background: 'var(--accent-teal)', height: '1.1rem', width: '2px', display: 'inline-block', marginLeft: '2px', verticalAlign: 'middle' }} />
+                        <span className={styles.speedCursor} style={{ background: 'var(--accent-cyan)', height: '1.1rem', width: '2px', display: 'inline-block', marginLeft: '2px', verticalAlign: 'middle' }} />
                       </div>
                     </div>
                   </div>
-
-                  {/* Supabase Actions Row */}
-                  {(transcript || interimText) && (
-                    <div className={styles.heroActionRow} style={{ marginTop: '1.5rem' }}>
-                      <button onClick={saveToSupabase} disabled={dbLoading} className={styles.dbActionButton}>
-                        {dbLoading ? <RefreshCw size={12} className="animate-spin" /> : saveSuccess ? <><Check size={12} /> Saved</> : <><Shield size={12} /> Save to Supabase</>}
-                      </button>
-                      <button onClick={handleCopy} className={styles.dbActionButton}>
-                        {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
-                      </button>
-                    </div>
-                  )}
                 </div>
               </GlassCard>
             </motion.div>
@@ -760,16 +834,167 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 2 — PRODUCT IN ACTION (Dark Obsidian Orbiting Grid) */}
+      {/* SOCIAL PROOF STRIP (Immediate Hero Trust Multiplier) */}
       {/* ------------------------------------------------------------------------- */}
-      <section className={styles.productInActionSection}>
+      <section className={styles.socialProofStrip} style={{ background: 'var(--bg-secondary)', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)', padding: '2.5rem 0', overflow: 'hidden' }}>
+        <div className="container">
+          <p style={{ textAlign: 'center', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '1.5rem' }}>
+            Trusted by modern builders worldwide
+          </p>
+          <div className="marquee-container">
+            <div className="marquee-content" style={{ gap: '4rem' }}>
+              {["FOUNDERS", "DEVELOPERS", "AGENCIES", "CONSULTANTS", "REMOTE TEAMS", "DESIGNERS", "ENGINEERS", "WRITERS"].map((logo, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.6 }}>
+                  <Sparkles size={14} style={{ color: 'var(--accent-cyan)' }} />
+                  <span style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>{logo}</span>
+                </div>
+              ))}
+              {/* Duplicate array for infinite loop effect */}
+              {["FOUNDERS", "DEVELOPERS", "AGENCIES", "CONSULTANTS", "REMOTE TEAMS", "DESIGNERS", "ENGINEERS", "WRITERS"].map((logo, idx) => (
+                <div key={`dup-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.6 }}>
+                  <Sparkles size={14} style={{ color: 'var(--accent-cyan)' }} />
+                  <span style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.05em', color: 'var(--text-primary)' }}>{logo}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* PAIN SECTION: Typing Is Slower Than Thinking (Emotional Sell) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.productInActionSection} style={{ background: 'var(--bg-primary)', padding: '9rem 0' }}>
+        <div className="container">
+          <div className={styles.actionHeader} style={{ marginBottom: '6rem' }}>
+            <span className={styles.layersBadge} style={{ background: 'rgba(244,63,94,0.08)', borderColor: 'rgba(244,63,94,0.2)', color: 'var(--accent-rose)' }}>The Typing Bottleneck</span>
+            <h2 className={styles.darkHeadline}>Typing Is Slower Than Thinking</h2>
+            <p className={styles.darkSubheadline}>Your brain operates at 150+ thoughts per minute, but your fingers limit your output to 40 WPM. Manual input causes mental fatigue, friction, and context switching.</p>
+          </div>
+
+          <div className={styles.speedSplitGrid} style={{ maxWidth: '1100px' }}>
+            {/* The Typing Friction Card */}
+            <GlassCard className={styles.speedCard} style={{ borderColor: 'rgba(244,63,94,0.15)', boxShadow: '0 0 40px rgba(244,63,94,0.02)' }}>
+              <div>
+                <span className={styles.speedBadge} style={{ background: 'rgba(244,63,94,0.08)', borderColor: 'rgba(244,63,94,0.2)', color: 'var(--accent-rose)' }}>Keyboard Input</span>
+                <h4 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '1.5rem 0 0.5rem', color: 'var(--text-primary)' }}>The Keyboard Friction Flow</h4>
+              </div>
+              <div style={{ margin: '1.5rem 0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.7 }}>
+                    <AlertTriangle size={15} color="var(--accent-rose)" />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}><strong>Interruption</strong>: Stutter, type, delete, retype</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.7 }}>
+                    <AlertCircle size={15} color="var(--accent-rose)" />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}><strong>Context Switching</strong>: Format headers, fix stutters</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.7 }}>
+                    <XCircle size={15} color="var(--accent-rose)" />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}><strong>Friction</strong>: Finger fatigue and cognitive lag</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-rose)' }}>Bottleneck: 45 Words Per Minute</div>
+            </GlassCard>
+
+            {/* The Voice Flow Card */}
+            <GlassCard className={styles.speedCard} style={{ borderColor: 'rgba(0,183,255,0.25)', boxShadow: '0 0 50px rgba(0,183,255,0.1)' }}>
+              <div>
+                <span className={styles.speedBadge}>Voice OS Input</span>
+                <h4 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '1.5rem 0 0.5rem', color: 'var(--text-primary)' }}>The Voice Momentum Flow</h4>
+              </div>
+              <div style={{ margin: '1.5rem 0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <CheckCircle2 size={15} color="var(--accent-cyan)" />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}><strong>Flow</strong>: Say it naturally without stopping</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <CheckSquare size={15} color="var(--accent-cyan)" />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}><strong>Momentum</strong>: Speech maps straight to action</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Zap size={15} color="var(--accent-cyan)" />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}><strong>Output</strong>: Polished, formatted, complete work</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>Momentum: 150+ Words Per Minute</div>
+            </GlassCard>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* DESIRE SECTION: Imagine Finishing An Hour Of Writing In 15 Min (Transformation) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.productInActionSection} style={{ background: 'var(--bg-secondary)', padding: '9rem 0' }}>
+        <div className="container">
+          <div className={styles.actionHeader} style={{ marginBottom: '5rem' }}>
+            <span className={styles.layersBadge}>Real Transformation</span>
+            <h2 className={styles.darkHeadline}>Finish An Hour of Writing in 15 Minutes</h2>
+            <p className={styles.darkSubheadline}>See how casual, naturally spoken thoughts instantly transform into formatted documents, messages, database notes, and functional code buffers.</p>
+          </div>
+
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            {/* Custom desire tabs */}
+            <div className={styles.contextTabsGrid} style={{ gridTemplateColumns: 'repeat(6, 1fr)', marginBottom: '2.5rem' }}>
+              {[
+                { id: 'email', label: 'Outreach Email' },
+                { id: 'notes', label: 'Meeting Notes' },
+                { id: 'linkedin', label: 'LinkedIn Post' },
+                { id: 'proposal', label: 'Proposal Outline' },
+                { id: 'support', label: 'Client Support' },
+                { id: 'code', label: 'Code Prompt' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setDesireTab(tab.id as any)}
+                  className={`${styles.contextTabBtn} ${desireTab === tab.id ? styles.contextTabBtnActive : ""}`}
+                  style={{ fontSize: '0.7rem' }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Display panel */}
+            <GlassCard className={styles.dictationWindowCard} style={{ padding: '3rem' }}>
+              <div className={styles.hudPlaygroundGrid} style={{ gridTemplateColumns: '1fr 1.1fr', gap: '3rem', alignItems: 'start' }}>
+                <div style={{ textAlign: 'left' }}>
+                  <span className={styles.hudBoxTag}>WHAT YOU SPELL / SPEAK:</span>
+                  <p style={{ fontSize: '1.15rem', fontStyle: 'italic', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '1rem 0' }}>
+                    "{desireExamples[desireTab].voice}"
+                  </p>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '2rem' }}>
+                    💡 No formatting commands, no punctuation triggers, no cloud latency bounds.
+                  </span>
+                </div>
+                
+                <div style={{ textAlign: 'left', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '3rem' }}>
+                  <span className={styles.hudBoxTag} style={{ color: 'var(--accent-cyan)' }}>WHISPERTYPE V2 FINISHED WORK:</span>
+                  <pre style={{ margin: '1rem 0 0', padding: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 'var(--radius-md)', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                    {desireExamples[desireTab].clean}
+                  </pre>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* "WRITES FASTER IN EVERY APP" - Orbiting Icons Section */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.productInActionSection} style={{ background: 'var(--bg-primary)' }}>
         <div className="container">
           <div className={styles.actionHeader}>
             <h2 className={styles.darkHeadline}>Writes Faster In Every App You Already Use</h2>
             <p className={styles.darkSubheadline}>WhisperType V2 works everywhere your cursor lands. Seamlessly types code, documents, and communication logs.</p>
           </div>
 
-          <div className={styles.orbitContainer}>
+          <div className={styles.orbitContainer} style={{ marginTop: '2rem' }}>
             {/* Ambient Background glows */}
             <div className={styles.orbitGlow1} />
             <div className={styles.orbitGlow2} />
@@ -805,7 +1030,7 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 3 — SPEED COMPARISON (Before / After Split Panel) */}
+      {/* "4X FASTER THAN TYPING" - Productivity counters */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.speedComparisonSection}>
         <div className="container">
@@ -818,7 +1043,7 @@ export default function Home() {
             {/* Before (Typing Manually) */}
             <GlassCard className={styles.speedCard} glowColor="none">
               <div className={styles.speedCardHeader}>
-                <span className={styles.speedBadge} style={{ background: 'rgba(17,17,17,0.05)', color: 'var(--text-primary)' }}>Before</span>
+                <span className={styles.speedBadge} style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.1)' }}>Before</span>
                 <span className={styles.speedCounter}>{beforeWpm} WPM</span>
               </div>
               <div className={styles.speedBody}>
@@ -831,26 +1056,25 @@ export default function Home() {
             <GlassCard className={styles.speedCard} glowColor="teal">
               <div className={styles.speedCardHeader}>
                 <span className={styles.speedBadge}>After</span>
-                <span className={styles.speedCounter} style={{ color: 'var(--accent-teal)' }}>{afterWpm} WPM</span>
+                <span className={styles.speedCounter} style={{ color: 'var(--accent-cyan)' }}>{afterWpm} WPM</span>
               </div>
               <div className={styles.speedBody}>
-                <p className={styles.speedText} style={{ color: 'var(--accent-teal)', fontWeight: 500 }}>{afterText}<span className={styles.speedCursor} style={{ background: 'var(--accent-teal)' }} /></p>
+                <p className={styles.speedText} style={{ color: 'var(--accent-cyan)', fontWeight: 500 }}>{afterText}<span className={styles.speedCursor} style={{ background: 'var(--accent-cyan)' }} /></p>
               </div>
-              <div className={styles.speedCardFooter} style={{ color: 'var(--accent-teal)', fontWeight: 600 }}>WhisperType V2 Voice OS</div>
+              <div className={styles.speedCardFooter} style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>WhisperType V2 Voice OS</div>
             </GlassCard>
           </div>
         </div>
       </section>
 
       {/* ------------------------------------------------------------------------- */}
+      {/* VOICE INTELLIGENCE: The Intelligence Layer Behind Every Word */}
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 4 — 5 LAYERS OF VOICE INTELLIGENCE (Interactive Pipeline) */}
-      {/* ------------------------------------------------------------------------- */}
-      <section className={styles.intelligenceLayersSection}>
+      <section className={styles.intelligenceLayersSection} id="features">
         <div className="container">
           <div className={styles.layersHeader}>
-            <span className={styles.layersBadge}>SaaS Core Architecture</span>
-            <h2>5 Layers of Voice Intelligence</h2>
+            <span className={styles.layersBadge}>Proprietary Stack Architecture</span>
+            <h2>The Intelligence Layer Behind Every Word</h2>
             <p>WhisperType V2 maps your spoken voice through five localized optimization layers in under 200ms, transforming raw speech into finished work.</p>
           </div>
 
@@ -1005,15 +1229,14 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 5 — 10-USP BENTO GRID SHOWCASE (Interactive Operating System Simulators) */}
+      {/* USP SECTION: Why WhisperType Feels Different */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.bentoSection}>
         <div className="container">
           <div className={styles.bentoHeader}>
-            <span className={styles.layersBadge}>10 Voice OS Features</span>
-            <h2 className={styles.darkHeadline}>Outclassing Standard Dictation Tools</h2>
-            <p className={styles.darkSubheadline}>WhisperType is not another dictation app. It's an entire AI Voice Operating System with dedicated automation blocks.</p>
+            <span className={styles.layersBadge}>Designed For Outcomes</span>
+            <h2 className={styles.darkHeadline}>Why WhisperType Feels Different</h2>
+            <p className={styles.darkSubheadline}>WhisperType is not another dictation app. It's a complete voice workflow system built to map spoken thoughts directly to finished actions.</p>
           </div>
 
           <div className={styles.bentoGrid}>
@@ -1212,13 +1435,69 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 6 — REDESIGNED CALCULATOR (Sliders & Savings Dashboard) */}
+      {/* "WHO IS THIS FOR?" (Interactive Profile Matrices) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.productInActionSection} style={{ background: 'var(--bg-secondary)', padding: '9rem 0' }}>
+        <div className="container">
+          <div className={styles.actionHeader} style={{ marginBottom: '5rem' }}>
+            <span className={styles.layersBadge}>User Segment Matrices</span>
+            <h2 className={styles.darkHeadline}>Who Is WhisperType For?</h2>
+            <p className={styles.darkSubheadline}>Select your professional segment profile to see realistic vocal triggers converting directly into finished work.</p>
+          </div>
+
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            {/* Interactive Profiles Grid */}
+            <div className={styles.howHorizontalGrid} style={{ gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem', marginBottom: '3rem' }}>
+              {[
+                { id: 'founder', title: 'Founder' },
+                { id: 'agency', title: 'Agency Owner' },
+                { id: 'sales', title: 'Sales Rep' },
+                { id: 'developer', title: 'Developer' },
+                { id: 'consultant', title: 'Consultant' },
+                { id: 'creator', title: 'Creator' }
+              ].map((prof) => (
+                <button
+                  key={prof.id}
+                  onClick={() => setActiveProfile(prof.id as any)}
+                  className={`${styles.layerSelectorBtn} ${activeProfile === prof.id ? styles.layerSelectorBtnActive : ""}`}
+                  style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '0.5rem' }}
+                >
+                  <span style={{ fontWeight: 800, fontSize: '0.8rem' }}>{prof.title}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Profile sandbox */}
+            <GlassCard className={styles.dictationWindowCard} style={{ padding: '3rem' }}>
+              <div className={styles.hudPlaygroundGrid} style={{ gridTemplateColumns: '1fr 1.1fr', gap: '3rem', alignItems: 'start' }}>
+                <div style={{ textAlign: 'left' }}>
+                  <span className={styles.hudBoxTag} style={{ color: 'var(--accent-cyan)' }}>{profileExamples[activeProfile].title} Vocal Phrase:</span>
+                  <p style={{ fontSize: '1.2rem', fontStyle: 'italic', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '1rem 0' }}>
+                    "{profileExamples[activeProfile].voice}"
+                  </p>
+                </div>
+                
+                <div style={{ textAlign: 'left', borderLeft: '1px dashed rgba(255,255,255,0.08)', paddingLeft: '3rem' }}>
+                  <span className={styles.hudBoxTag}>FINISHED WORK PRODUCTIVITY OUTCOME:</span>
+                  <pre style={{ margin: '1rem 0 0', padding: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 'var(--radius-md)', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--accent-cyan)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                    {profileExamples[activeProfile].clean}
+                  </pre>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* SAVINGS DASHBOARD SECTION (Financial impact panels) */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.calculatorSection}>
         <div className="container">
           <div className={styles.calculatorHeader}>
-            <h2>Redesigned Savings Dashboard</h2>
-            <p>Slide metrics to see how WhisperType V2 alters your daily writing timelines.</p>
+            <span className={styles.layersBadge}>SaaS Telemetry Dashboard</span>
+            <h2>Calculate Your Financial Output Impact</h2>
+            <p>Slide metrics to calculate how mapping voice straight to finished work alters your daily writing financial timelines.</p>
           </div>
 
           <div className={styles.calculatorCardContainer}>
@@ -1228,7 +1507,7 @@ export default function Home() {
                 <div className={styles.slidersBlock}>
                   <div className={styles.sliderWidget}>
                     <div className={styles.sliderLabels}>
-                      <span>Daily Dictation Length</span>
+                      <span>Daily Spoken / Written Output</span>
                       <strong className={styles.sliderHighlight}>{dailyWords} words</strong>
                     </div>
                     <input 
@@ -1245,7 +1524,7 @@ export default function Home() {
 
                   <div className={styles.sliderWidget}>
                     <div className={styles.sliderLabels}>
-                      <span>Keyboard Typing Speed</span>
+                      <span>Keyboard Typing WPM Speed</span>
                       <strong className={styles.sliderHighlight}>{typingSpeed} WPM</strong>
                     </div>
                     <input 
@@ -1262,7 +1541,7 @@ export default function Home() {
 
                   <div className={styles.sliderWidget}>
                     <div className={styles.sliderLabels}>
-                      <span>Hourly Value Rate</span>
+                      <span>Spoken Value Value Rate</span>
                       <strong className={styles.sliderHighlight}>${hourlyRate}/hr</strong>
                     </div>
                     <input 
@@ -1289,21 +1568,27 @@ export default function Home() {
 
                     <div className={styles.dashCard}>
                       <span className={styles.dashCardTitle}>Productivity Boost</span>
-                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-teal)' }}>{productivityMultiplier.toFixed(1)}x</h4>
-                      <p className={styles.dashCardSub}>faster dictation speed</p>
+                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-cyan)' }}>{productivityMultiplier.toFixed(1)}x</h4>
+                      <p className={styles.dashCardSub}>faster than standard typing</p>
                     </div>
 
-                    <div className={styles.dashCard} style={{ gridColumn: 'span 2' }}>
-                      <span className={styles.dashCardTitle}>Equivalent Emails Spoken</span>
-                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-teal)' }}>~{emailsEquivalent} emails</h4>
-                      <p className={styles.dashCardSub}>drafted at speed of thought</p>
+                    <div className={styles.dashCard}>
+                      <span className={styles.dashCardTitle}>Emails Completed</span>
+                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-cyan)' }}>~{emailsEquivalent}</h4>
+                      <p className={styles.dashCardSub}>drafted at thought speed</p>
+                    </div>
+
+                    <div className={styles.dashCard}>
+                      <span className={styles.dashCardTitle}>Meetings Reduced</span>
+                      <h4 className={styles.dashCardVal} style={{ color: 'var(--accent-cyan)' }}>-{Math.floor(hoursSaved / 2)} hrs</h4>
+                      <p className={styles.dashCardSub}>wasted sync alignment</p>
                     </div>
                   </div>
 
                   <div className={styles.dashFinancialCard}>
-                    <span>Monthly Financial Value Saved</span>
+                    <span>Monthly Financial Value Recovered</span>
                     <h3 className={styles.dashFinancialVal}>${moneySaved.toLocaleString(undefined, {maximumFractionDigits: 0})} / mo</h3>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Projected savings on daily transcription workloads</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Projected revenue impact on daily transcription workloads</p>
                   </div>
                 </div>
               </div>
@@ -1313,58 +1598,59 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 7 — WHY WHISPERTYPE WINS (Interactive comparison cards) */}
+      {/* "NOT ANOTHER DICTATION TOOL" - Benchmark Comparison Cards */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.winsComparisonSection}>
         <div className="container">
           <div className={styles.comparisonHeader}>
-            <h2>Why WhisperType V2 Wins</h2>
-            <p>A modern comparative experience outlining the technical edge of WhisperType V2 Voice OS.</p>
+            <span className={styles.layersBadge}>Direct Benchmarks</span>
+            <h2>Not Another Dictation Tool</h2>
+            <p>See why mapping natural speech to complete workflows outperforms traditional typing and basic STT tools.</p>
           </div>
 
           <div className={styles.winsGrid}>
-            {/* Card 1: Built-in Dictation */}
+            {/* Card 1: Keyboard Typing */}
             <GlassCard className={styles.winsCard} glowColor="none">
-              <h4 className={styles.winsCardTitle}>Built-in Dictation</h4>
-              <p className={styles.winsCardDesc}>Basic OS tools built for generic transcription logs.</p>
+              <h4 className={styles.winsCardTitle} style={{ color: 'var(--text-secondary)' }}>1. Keyboard Typing</h4>
+              <p className={styles.winsCardDesc}>Highly manual, slow physical typing bottlenecked by key caps.</p>
               
               <ul className={styles.winsChecklist}>
-                <li><XCircle size={15} color="var(--neon-rose)" /> 100% Offline Inference</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Auto-Filler Word Eraser</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Backtrack Vocal Corrections</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Developer casing formatting</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Speech-to-Command editing</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> Slower 40 Words Per Minute</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> Severe Finger & Hand Fatigue</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> Interrupted mental context flow</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> No app-aware casing structures</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> Manual copy pasting across tabs</li>
               </ul>
             </GlassCard>
 
-            {/* Card 2: Generic Speech-to-Text */}
+            {/* Card 2: Traditional Dictation */}
             <GlassCard className={styles.winsCard} glowColor="none">
-              <h4 className={styles.winsCardTitle}>Generic Speech-to-Text</h4>
-              <p className={styles.winsCardDesc}>Standard cloud utilities resolving voice documents.</p>
+              <h4 className={styles.winsCardTitle} style={{ color: 'var(--text-secondary)' }}>2. Traditional Dictation</h4>
+              <p className={styles.winsCardDesc}>Cloud-dependent STT engines that output messy raw streams.</p>
               
               <ul className={styles.winsChecklist}>
-                <li><XCircle size={15} color="var(--neon-rose)" /> 100% Offline Inference</li>
-                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Auto-Filler Word Eraser</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Backtrack Vocal Corrections</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Developer casing formatting</li>
-                <li><XCircle size={15} color="var(--neon-rose)" /> Speech-to-Command editing</li>
+                <li><CheckCircle2 size={15} color="var(--accent-cyan)" /> 150 WPM Speaking speed</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> Um/ah stutters left in output</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> No backspace speech undo correction</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> No offline database persistence</li>
+                <li><XCircle size={15} color="var(--accent-rose)" /> No developer coding formats</li>
               </ul>
             </GlassCard>
 
-            {/* Card 3: WhisperType V2 */}
-            <GlassCard className={styles.winsCard} glowColor="teal" style={{ borderColor: 'var(--accent-teal)', borderWidth: '2px' }}>
-              <div className={styles.winsCardHeader}>
-                <h4 className={styles.winsCardTitle} style={{ color: 'var(--accent-teal)' }}>WhisperType V2</h4>
+            {/* Card 3: WhisperType V2 AI Voice OS */}
+            <GlassCard className={styles.winsCard} glowColor="teal" style={{ borderColor: 'var(--accent-cyan)', borderWidth: '2px' }}>
+              <div className={styles.winsCardHeader} style={{ marginBottom: '1rem' }}>
+                <h4 className={styles.winsCardTitle} style={{ color: 'var(--accent-cyan)' }}>3. WhisperType V2 OS</h4>
                 <span className={styles.winsBadge}>Recommended</span>
               </div>
-              <p className={styles.winsCardDesc}>Our offline local engine built for extreme workflow speeds.</p>
+              <p className={styles.winsCardDesc}>A highly advanced local AI OS that erases friction entirely.</p>
               
               <ul className={styles.winsChecklist}>
-                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> 100% Offline Inference</li>
-                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Auto-Filler Word Eraser</li>
-                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Backtrack Vocal Corrections</li>
-                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Developer casing formatting</li>
-                <li><CheckCircle2 size={15} color="var(--accent-teal)" /> Speech-to-Command editing</li>
+                <li><CheckCircle2 size={15} color="var(--accent-cyan)" /> 100% Offline Local ONNX engine</li>
+                <li><CheckCircle2 size={15} color="var(--accent-cyan)" /> Automatic stutters striking & cleanup</li>
+                <li><CheckCircle2 size={15} color="var(--accent-cyan)" /> Backtrack correcting ("meet at 2... 3")</li>
+                <li><CheckCircle2 size={15} color="var(--accent-cyan)" /> App-aware Slack, Notion, Cursor casing</li>
+                <li><CheckCircle2 size={15} color="var(--accent-cyan)" /> Flying Notion task workflow trigger</li>
               </ul>
             </GlassCard>
           </div>
@@ -1372,21 +1658,22 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 8 — HOW IT WORKS (Horizontal Stepper timeline) */}
+      {/* WORKFLOW TIMELINE: Horizontal Journey Pipeline */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.howItWorksSection}>
         <div className="container">
           <div className={styles.howHeader}>
-            <h2 className={styles.darkHeadline}>Horizontal timeline</h2>
-            <p className={styles.darkSubheadline}>Get started in four organic stages with zero friction.</p>
+            <span className={styles.layersBadge}>Pipeline Flow</span>
+            <h2 className={styles.darkHeadline}>Horizontal Pipeline Journey</h2>
+            <p className={styles.darkSubheadline}>WhisperType converts spoken thought to finished work in four organic stages.</p>
           </div>
 
           <div className={styles.howHorizontalGrid}>
             {[
-              { step: "01", title: "Connect Helper", desc: "Download and launch the offline helper natively matching your OS." },
-              { step: "02", title: "Speak Naturally", desc: "Hold down your global activation shortcut (Caps Lock) and start dictating." },
-              { step: "03", title: "AI Enhances Casing", desc: "Our localized models erase stutters, check dictionaries, and format casings." },
-              { step: "04", title: "Publish Globally", desc: "Release key. The output text auto-pastes instantly in Notion, Cursor, or Slack." }
+              { step: "01", title: "Voice Capture", desc: "Hold global shortcut (Caps Lock) and speak naturally without manual punctuation rules." },
+              { step: "02", title: "AI Cleanup", desc: "Quantized Whisper weights erase stutters, strike stumbles, and correct backtracks." },
+              { step: "03", title: "Refinement Engine", desc: "Context resolvers format casing (camelCase inside Cursor, Markdown inside Notion)." },
+              { step: "04", title: "Finished Output", desc: "Work maps straight to your caret target carets. Auto-pastes and triggers Notion tickets." }
             ].map((st, i) => (
               <GlassCard key={i} className={styles.howStepCard} isDark glowColor={i === 2 ? "lavender" : "none"}>
                 <div className={styles.howStepNum}>{st.step}</div>
@@ -1399,13 +1686,14 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 9 — TESTIMONIALS (Auto-Scrolling Infinite Marquee) */}
+      {/* TESTIMONIALS SECTION (Outcome-focused premium wall) */}
       {/* ------------------------------------------------------------------------- */}
       <section className={styles.testimonialsSection}>
         <div className="container">
           <div className={styles.testimonialsHeader}>
-            <h2 className={styles.darkHeadline}>Love Letters To WhisperType</h2>
-            <p className={styles.darkSubheadline}>What developers, authors, and executives say about their dictation speeds.</p>
+            <span className={styles.layersBadge}>Success Metrics</span>
+            <h2 className={styles.darkHeadline}>Love Letters To WhisperType V2</h2>
+            <p className={styles.darkSubheadline}>Hear how software architects, agency owners, and product executives boosted daily output with voice OS pipelines.</p>
           </div>
         </div>
 
@@ -1413,18 +1701,18 @@ export default function Home() {
         <div className="marquee-container">
           <div className="marquee-content">
             {[
-              { name: "Sarah K.", role: "Senior Developer", quote: "Auto-camelCasing variable speech is a massive game-changer. I dictation-code all day inside Cursor." },
-              { name: "David L.", role: "Founder & CEO", quote: "No cloud lag, and 100% offline security means my voice dictations never trigger server flags." },
-              { name: "James M.", role: "Creative Author", quote: "Typing speed bottlenecks are gone. I dictation-draft my outlines in casual style natively." },
-              { name: "Elena R.", role: "SaaS Marketer", quote: "Vocal Command Mode is magic. Highlighted paragraphs rewrite to professional drafts instantly." },
-              { name: "Marcus P.", role: "Support Lead", quote: "Filler erasers are extremely accurate. Strips stutters so my customer Slack messages read flawlessly." }
+              { name: "Sarah K.", role: "Senior Developer at Cursor AI", quote: "Auto-camelCasing variable speech is a massive game-changer. I dictate-code 2,000+ lines inside Cursor every day." },
+              { name: "David L.", role: "Founder & CEO, Crelix SaaS", quote: "No cloud lag, and 100% offline privacy means my confidential client briefs never trigger cloud server flags." },
+              { name: "James M.", role: "Creative Director, Flow Agency", quote: "Typing bottlenecks are completely history. I finish proposals and support tickets in under 15 minutes now." },
+              { name: "Elena R.", role: "SaaS Marketer at Linear", quote: "Hey Whisper AI Assistant is pure magic. I dictate raw copy drafts and watch them stream into polished emails instantly." },
+              { name: "Marcus P.", role: "Support Director at Acme Support", quote: "Automatic backtrack correcting resolves stumbles. Strips filler words so customer Slack updates read perfectly." }
             ].map((t, i) => (
               <GlassCard key={i} className={styles.testimonialMarqueeCard} isDark glowColor="teal">
                 <div className={styles.tHeader}>
                   <div className={styles.tAvatar}>{t.name[0]}</div>
                   <div>
                     <h5 style={{ color: 'var(--text-white)', fontWeight: 700 }}>{t.name}</h5>
-                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>{t.role}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t.role}</span>
                   </div>
                 </div>
                 <p className={styles.tQuote}>"{t.quote}"</p>
@@ -1436,10 +1724,112 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------------- */}
-      {/* SECTION 10 — FINAL CTA (Immersive Blurred Lavender Panel) */}
+      {/* OBJECTION HANDLING (Animated FAQ Accordion) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.productInActionSection} style={{ background: 'var(--bg-primary)', padding: '9rem 0' }} id="faq">
+        <div className="container">
+          <div className={styles.actionHeader} style={{ marginBottom: '5rem' }}>
+            <span className={styles.layersBadge}>Secret Objections</span>
+            <h2 className={styles.darkHeadline}>Questions You Secretly Have</h2>
+            <p className={styles.darkSubheadline}>Get clear, technical answers to major structural concerns regarding offline latency, accent support, and database integrators.</p>
+          </div>
+
+          <div className={styles.faqMatrixGrid}>
+            {faqData.map((faq, idx) => (
+              <div 
+                key={idx} 
+                className={`${styles.faqItem} ${openFaq === idx ? styles.faqItemActive : ""}`}
+              >
+                <button 
+                  className={styles.faqTrigger}
+                  onClick={() => toggleFaq(idx)}
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown size={16} className={`${styles.faqIcon} ${openFaq === idx ? styles.faqIconActive : ""}`} />
+                </button>
+                <div className={`${styles.faqContent} ${openFaq === idx ? styles.faqContentActive : ""}`}>
+                  <div className={styles.faqInner}>
+                    {faq.a}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* OFFER SECTION: Pricing Cards Side-by-Side (New Section) */}
+      {/* ------------------------------------------------------------------------- */}
+      <section className={styles.calculatorSection} style={{ background: 'var(--bg-secondary)' }} id="pricing">
+        <div className="container">
+          <div className={styles.calculatorHeader} style={{ marginBottom: '5rem' }}>
+            <span className={styles.layersBadge}>SaaS Pricing</span>
+            <h2>Start Writing At The Speed Of Thought</h2>
+            <p>Get started completely free. Upgrade to Pro when you are ready to supercharge multi-app automation pipelines.</p>
+          </div>
+
+          <div className={styles.speedSplitGrid} style={{ maxWidth: '1000px' }}>
+            {/* Free Plan Card */}
+            <GlassCard className={styles.speedCard} style={{ padding: '3.5rem 3rem' }}>
+              <div>
+                <span className={styles.speedBadge} style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.08)' }}>Free Plan</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', margin: '2rem 0 1rem' }}>
+                  <span style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>$0</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>/ forever</span>
+                </div>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '2.5rem' }}>
+                  Perfect for local offline dictation stutters stripping on a single carets interface.
+                </p>
+                <ul className={styles.winsChecklist} style={{ gap: '1rem', marginBottom: '3rem' }}>
+                  <li><Check size={14} color="var(--accent-cyan)" /> 100% Offline ONNX local compiler</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Automatic stutters striking</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Backtrack voice correcting</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Local jargon dictionary (5 inputs)</li>
+                </ul>
+              </div>
+              <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                <span>Download Free Helper</span>
+              </Button>
+            </GlassCard>
+
+            {/* Pro Plan Card */}
+            <GlassCard className={styles.speedCard} style={{ padding: '3.5rem 3rem', borderColor: 'var(--accent-cyan)', borderWidth: '2px', boxShadow: '0 0 50px rgba(0,183,255,0.12)' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className={styles.speedBadge}>Pro Plan</span>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 900, background: 'rgba(0,183,255,0.15)', color: 'var(--accent-cyan)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,183,255,0.25)' }}>Most Popular</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', margin: '2rem 0 1rem' }}>
+                  <span style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>$19</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>/ month</span>
+                </div>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '2.5rem' }}>
+                  Unlocks multi-app tone adaptations, Notion Kanbans, and full developer variables casing.
+                </p>
+                <ul className={styles.winsChecklist} style={{ gap: '1rem', marginBottom: '3rem' }}>
+                  <li><Check size={14} color="var(--accent-cyan)" /> <strong>All Free Features</strong> included</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Multi-App context formatting (Slack, Notion)</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Developer Cursor camelCase formats</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Flying Notion task kanban automation</li>
+                  <li><Check size={14} color="var(--accent-cyan)" /> Unlimited local memory graph</li>
+                </ul>
+              </div>
+              <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => {
+                document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
+                <span>Start Free Trial</span>
+              </Button>
+            </GlassCard>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------------- */}
+      {/* SECTION 10 — IMMERSIVE FINAL CTA (Immersive Cyber Redesign) */}
       {/* ------------------------------------------------------------------------- */}
       <section id="download" className={styles.ctaImmersiveSection}>
-        {/* Soft Blurred Lavender and Peach Background Spheres */}
+        {/* Soft Blurred deep-blue Background Spheres */}
         <div className={styles.ctaImmersiveSphere1} />
         <div className={styles.ctaImmersiveSphere2} />
 
@@ -1457,14 +1847,14 @@ export default function Home() {
           <path d="M-50,450 Q400,500 700,200 T1200,450 T1500,150" stroke="url(#gradientLavender)" strokeWidth="1.5" strokeDasharray="4 6" className={styles.ctaDottedPath2} />
           <defs>
             <linearGradient id="gradientTeal" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(0, 95, 90, 0.05)" />
-              <stop offset="50%" stopColor="rgba(0, 95, 90, 0.25)" />
-              <stop offset="100%" stopColor="rgba(0, 95, 90, 0.05)" />
+              <stop offset="0%" stopColor="rgba(0, 183, 255, 0.05)" />
+              <stop offset="50%" stopColor="rgba(0, 183, 255, 0.25)" />
+              <stop offset="100%" stopColor="rgba(0, 183, 255, 0.05)" />
             </linearGradient>
             <linearGradient id="gradientLavender" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(220, 198, 246, 0.05)" />
-              <stop offset="50%" stopColor="rgba(220, 198, 246, 0.3)" />
-              <stop offset="100%" stopColor="rgba(220, 198, 246, 0.05)" />
+              <stop offset="0%" stopColor="rgba(0, 102, 255, 0.05)" />
+              <stop offset="50%" stopColor="rgba(0, 102, 255, 0.3)" />
+              <stop offset="100%" stopColor="rgba(0, 102, 255, 0.05)" />
             </linearGradient>
           </defs>
         </svg>
@@ -1477,8 +1867,8 @@ export default function Home() {
             viewport={{ once: true }}
             variants={fadeUp}
           >
-            <h2 className={styles.ctaImmersiveHeadline}>Start Writing At The <br />Speed Of Thought.</h2>
-            <p className={styles.ctaImmersiveSubheadline}>Download the free open-source helper launcher and start dictating 4× faster than keyboards with absolute privacy.</p>
+            <h2 className={styles.ctaImmersiveHeadline}>Your Best Ideas Deserve <br />Better Than A Keyboard.</h2>
+            <p className={styles.ctaImmersiveSubheadline}>Download the free open-source helper launcher and start writing 4× faster with absolute device privacy.</p>
             
             <div className={styles.ctaImmersiveButtons}>
               <Button variant="primary">
@@ -1494,9 +1884,9 @@ export default function Home() {
             </div>
 
             <ul className={styles.ctaImmersiveChecklist}>
-              <li><Check size={16} /> Free Forever</li>
-              <li><Check size={16} /> Fully Offline Whisper AI</li>
-              <li><Check size={16} /> Less than 50MB installer</li>
+              <li><Check size={16} /> Free Forever Base</li>
+              <li><Check size={16} /> 100% Offline Local Whisper</li>
+              <li><Check size={16} /> Less than 50MB helper</li>
             </ul>
           </motion.div>
         </div>

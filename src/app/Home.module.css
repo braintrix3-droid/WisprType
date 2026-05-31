@@ -2049,3 +2049,28 @@
     align-items: center;
   }
 }
+
+.socialProofStrip {
+  position: relative;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 183, 255, 0.03) 0%, transparent 70%);
+}
+
+.socialProofStrip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 183, 255, 0.1) 50%, transparent);
+}
+
+.socialProofStrip::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 183, 255, 0.1) 50%, transparent);
+}
