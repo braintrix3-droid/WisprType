@@ -929,7 +929,7 @@ export default function Home() {
       {/* ------------------------------------------------------------------------- */}
       {/* DESIRE SECTION: Imagine Finishing An Hour Of Writing In 15 Min (Transformation) */}
       {/* ------------------------------------------------------------------------- */}
-      <section className={styles.productInActionSection} style={{ background: 'var(--bg-secondary)', padding: '9rem 0' }}>
+      <section className={styles.productInActionSection} style={{ background: 'var(--bg-secondary)', padding: '9rem 0' }} id="playground">
         <div className="container">
           <div className={styles.actionHeader} style={{ marginBottom: '5rem' }}>
             <span className={styles.layersBadge}>Real Transformation</span>
@@ -1660,7 +1660,7 @@ export default function Home() {
       {/* ------------------------------------------------------------------------- */}
       {/* WORKFLOW TIMELINE: Horizontal Journey Pipeline */}
       {/* ------------------------------------------------------------------------- */}
-      <section className={styles.howItWorksSection}>
+      <section className={styles.howItWorksSection} id="how-it-works">
         <div className="container">
           <div className={styles.howHeader}>
             <span className={styles.layersBadge}>Pipeline Flow</span>
